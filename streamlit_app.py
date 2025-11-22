@@ -5,9 +5,18 @@ from datetime import datetime
 import openpyxl
 from openpyxl.styles import PatternFill, Alignment
 import streamlit as st
+import requests  # <<< חדש – בשביל N8N
 
+
+# ========= הגדרות N8N =========
+# להחליף ל-Webhook האמיתי שלך ב-N8N
+N8N_WEBHOOK_URL = "https://YOUR-N8N-DOMAIN/webhook/giyul-chovot"
+
+
+# ---------- כלי עזר ----------
 
 def parse_amount(val):
+    """המרת ערך לסכום מספרי (float) עם טיפול בריק ומפרידי אלפים."""
     if val is None or val == "":
         raise ValueError("empty")
     if isinstance(val, (int, float)):
@@ -15,11 +24,15 @@ def parse_amount(val):
     s = str(val).strip()
     if s == "":
         raise ValueError("empty")
-    s = s.replace(",", "")
+    s = s.replace(",", "")  # להסיר מפרידי אלפים
     return float(s)
 
 
 def detect_headers(ws):
+    """
+    זיהוי שורת כותרות: מנסה שורה 1 ואז 2.
+    מחזיר: (index של שורת כותרות, מילון {שם עמודה -> אינדקס עמודה})
+    """
     candidates = [1, 2]
     chosen_row = None
     headers = {}
@@ -29,25 +42,30 @@ def detect_headers(ws):
         row_values = [str(c.value).strip() if c.value is not None else "" for c in row_cells]
         if any(v for v in row_values):
             tmp_headers = {str(c.value).strip(): c.column for c in ws[row_idx] if c.value}
+            # עדיפות לשורה שיש בה גם "חשבון" וגם "חוב לחשבונית"
             if "חשבון" in tmp_headers and "חוב לחשבונית" in tmp_headers:
                 chosen_row = row_idx
                 headers = tmp_headers
                 break
+            # אם עוד לא בחרנו – נשמור ככותרת זמנית
             if not headers:
                 chosen_row = row_idx
                 headers = tmp_headers
 
     if chosen_row is None:
+        # fallback – נניח שורה 1
         chosen_row = 1
         headers = {str(c.value).strip(): c.column for c in ws[1] if c.value}
 
     return chosen_row, headers
 
 
-GREEN_RGB = "FF00FF00"
-ORANGE_RGB = "FFFFA500"
-PURPLE_RGB = "FFCC99FF"
-BLUE_RGB = "FFADD8E6"
+# ---------- הגדרת צבעים ----------
+
+GREEN_RGB = "FF00FF00"   # ירוק
+ORANGE_RGB = "FFFFA500"  # כתום
+PURPLE_RGB = "FFCC99FF"  # סגול
+BLUE_RGB = "FFADD8E6"    # כחול
 
 GREEN_FILL = PatternFill(start_color=GREEN_RGB, end_color=GREEN_RGB, fill_type="solid")
 ORANGE_FILL = PatternFill(start_color=ORANGE_RGB, end_color=ORANGE_RGB, fill_type="solid")
@@ -63,6 +81,7 @@ def cell_rgb(cell):
 
 
 def has_any_color(cell):
+    """בודק אם לתא יש אחד מהצבעים של הלוגיקות."""
     return cell.fill.fill_type == "solid" and cell_rgb(cell) in {
         GREEN_RGB,
         ORANGE_RGB,
@@ -71,7 +90,10 @@ def has_any_color(cell):
     }
 
 
+# ---------- גיליון סיכום ----------
+
 def ensure_summary_sheet(wb, title, counts):
+    """יצירה/ניקוי גיליון סיכום והזנת נתונים."""
     if title in wb.sheetnames:
         ws_sum = wb[title]
         for row in ws_sum.iter_rows():
@@ -92,27 +114,33 @@ def ensure_summary_sheet(wb, title, counts):
         r += 1
 
 
-def process_workbook(wb):
-    ws = wb.active
+# ---------- לוגיקות 1–7 ----------
 
+def process_workbook(wb):
+    """מריץ על ה-Workbook את כל הלוגיקות 1–7."""
+    ws = wb.active  # נניח שהגיליון הראשון הוא המקור
+
+    # זיהוי כותרות
     header_row, headers = detect_headers(ws)
 
-    col_acc = headers.get("חשבון")
-    col_amt = headers.get("חוב לחשבונית")
-    col_type = headers.get("סוג תנועה")
+    col_acc = headers.get("חשבון")          # מס ספק
+    col_amt = headers.get("חוב לחשבונית")   # סכום לתשלום
+    col_type = headers.get("סוג תנועה")     # סוג תנועה
     col_name = headers.get("תאור חשבון") or headers.get("שם ספק") or headers.get("תיאור חשבון")
-    col_pay = headers.get("תאריך תשלום")
+    col_pay = headers.get("תאריך תשלום")    # תאריך תשלום
 
     if col_acc is None or col_amt is None:
-        raise ValueError("לא נמצאו עמודות 'חשבון' ו/או 'חוב לחשבונית'")
+        raise ValueError("לא נמצאו עמודות 'חשבון' ו/או 'חוב לחשבונית'. ודאי ששמות הכותרות כתובים בדיוק כך.")
 
+    # ברירות מחדל, למקרה שאין עמודות שם ספק/תאריך
     if col_name is None:
         col_name = 3
     if col_pay is None:
         col_pay = 4
 
-    data_start_row = header_row + 1
+    data_start_row = header_row + 1  # השורה שאחרי הכותרת
 
+    # ===== לוגיקה 1 – ירוק 100% בתוך ספק =====
     groups = defaultdict(list)
     for row in ws.iter_rows(min_row=data_start_row):
         acc = row[col_acc - 1].value
@@ -139,6 +167,7 @@ def process_workbook(wb):
                 if ni in used_neg:
                     continue
                 if abs(pval + nval) < 1e-6:
+                    # צביעה בירוק
                     prow[col_amt - 1].fill = GREEN_FILL
                     nrow[col_amt - 1].fill = GREEN_FILL
                     green_counts[acc] += 2
@@ -147,6 +176,7 @@ def process_workbook(wb):
 
     ensure_summary_sheet(wb, "התאמה 100%", green_counts)
 
+    # ===== לוגיקה 3 – כתום 80% בתוך ספק =====
     orange_counts = defaultdict(int)
 
     for acc, rows in groups.items():
@@ -175,7 +205,7 @@ def process_workbook(wb):
                 nc = nrow[col_amt - 1]
                 if has_any_color(nc):
                     continue
-                if abs(pval + nval) <= 2:
+                if abs(pval + nval) <= 2:  # סטייה עד 2 ש"ח
                     pc.fill = ORANGE_FILL
                     nc.fill = ORANGE_FILL
                     orange_counts[acc] += 2
@@ -184,6 +214,7 @@ def process_workbook(wb):
 
     ensure_summary_sheet(wb, "התאמה 80%", orange_counts)
 
+    # ===== לוגיקה 5 – סגול גלובלי =====
     purple_counts = defaultdict(int)
     eligible = []
 
@@ -228,6 +259,7 @@ def process_workbook(wb):
 
     ensure_summary_sheet(wb, "בדיקת ספקים", purple_counts)
 
+    # ===== לוגיקה 6 – כחול: סוג תנועה 'העב' =====
     rows_mail = []
 
     for row in ws.iter_rows(min_row=data_start_row):
@@ -246,6 +278,7 @@ def process_workbook(wb):
                 )
             )
 
+    # ===== לוגיקה 7 – גיליון 'מיילים לספק' + טקסט מייל =====
     if "מיילים לספק" in wb.sheetnames:
         ws_mail = wb["מיילים לספק"]
         for r in ws_mail.iter_rows():
@@ -265,18 +298,21 @@ def process_workbook(wb):
     for name, pay, debt in rows_mail:
         ws_mail.cell(row_idx, 1, name)
 
+        # עיבוד תאריך
         if isinstance(pay, datetime):
             date_str = pay.strftime("%d/%m/%y")
         else:
             date_str = str(pay) if pay is not None else ""
         ws_mail.cell(row_idx, 2, date_str)
 
+        # סכום בפלוס
         try:
             amount = abs(parse_amount(debt))
         except Exception:
             amount = debt
         ws_mail.cell(row_idx, 3, amount)
 
+        # טקסט מייל רב-שורי
         msg = (
             f"שלום ל-{name}\n"
             f"חסרה לנו חשבונית עבור תשלום:\n"
@@ -290,11 +326,33 @@ def process_workbook(wb):
 
         row_idx += 1
 
+    # RTL לכל הגיליונות
     for sh in wb.worksheets:
         sh.sheet_view.rightToLeft = True
 
     return wb
 
+
+# ---------- שליחת טריגר ל-N8N ----------
+
+def trigger_n8n(client_name: str):
+    """
+    שולח טריגר ל-N8N עם שם לקוח.
+    ה-N8N מקבל JSON: { "client_name": "<השם שהוזן>" }
+    """
+    if not N8N_WEBHOOK_URL or "YOUR-N8N-DOMAIN" in N8N_WEBHOOK_URL:
+        raise RuntimeError("לא הוגדרה כתובת Webhook אמיתית ל-N8N (N8N_WEBHOOK_URL).")
+
+    payload = {
+        "client_name": client_name,
+        "action": "giyul_chovot",
+    }
+    resp = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=15)
+    resp.raise_for_status()
+    return resp
+
+
+# ---------- אפליקציית Streamlit ----------
 
 def main():
     st.set_page_config(
@@ -303,19 +361,36 @@ def main():
         layout="wide",
     )
 
-    st.title("📊 אוטומציית גיול חובות – לוגיקות 1–7")
-    st.write(
-        "העליי קובץ אקסל של גיול חובות, "
-        "והמערכת תבצע התאמות 100%, 80%, בדיקות גלובליות וגיליון מיילים לספק."
-    )
+    st.title("📊 אוטומציית גיול חובות – לוגיקות 1–7 + טריגר ל-N8N")
+
+    # ==== קלט ל-N8N ====
+    st.subheader("טריגר ל-N8N לפי שם לקוח")
+    client_name = st.text_input("שם לקוח / ספק עבור N8N (למשל: שוקי טל, אילן גינון וכו')")
+
+    col_trig1, col_trig2 = st.columns([1, 4])
+    with col_trig1:
+        if st.button("שלח טריגר ל-N8N"):
+            if not client_name.strip():
+                st.warning("נא למלא שם לקוח לפני שליחת טריגר.")
+            else:
+                try:
+                    trigger_n8n(client_name.strip())
+                    st.success(f"נשלח טריגר ל-N8N עבור: {client_name}")
+                except Exception as e:
+                    st.error(f"שליחת הטריגר ל-N8N נכשלה: {e}")
+
+    st.markdown("---")
+
+    # ==== חלק גיול חובות באקסל ====
+    st.subheader("עיבוד קובץ גיול חובות (אקסל)")
 
     uploaded_file = st.file_uploader("בחרי קובץ Excel", type=["xlsx"])
 
     if uploaded_file is None:
-        st.info("🔼 בחרי קובץ כדי להתחיל.")
+        st.info("🔼 בחרי קובץ כדי להריץ לוגיקות 1–7.")
         return
 
-    if st.button("הפעל אוטומציה"):
+    if st.button("הפעל אוטומציה על הקובץ"):
         try:
             wb = openpyxl.load_workbook(uploaded_file)
             wb = process_workbook(wb)
