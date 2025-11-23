@@ -5,13 +5,12 @@ from datetime import datetime
 import openpyxl
 from openpyxl.styles import PatternFill, Alignment
 import streamlit as st
-import requests  # <<< חדש – בשביל N8N
+import requests
 
 
 # ========= הגדרות N8N =========
-# להחליף ל-Webhook האמיתי שלך ב-N8N
-N8N_WEBHOOK_URL = "https://riseelena.app.n8n.cloud/webhook/e134717f-c0ad-4e29-a354-1b6edbe1d1ce"
-
+# להחליף ל-Webhook האמיתי שלך
+N8N_WEBHOOK_URL = "https://riseelena.app.n8n.cloud/webhook/e134717f-c0ad-4e29-a354-1a6f24595c8a"
 
 
 # ---------- כלי עזר ----------
@@ -54,14 +53,13 @@ def detect_headers(ws):
                 headers = tmp_headers
 
     if chosen_row is None:
-        # fallback – נניח שורה 1
         chosen_row = 1
         headers = {str(c.value).strip(): c.column for c in ws[1] if c.value}
 
     return chosen_row, headers
 
 
-# ---------- הגדרת צבעים ----------
+# ---------- צבעים ----------
 
 GREEN_RGB = "FF00FF00"   # ירוק
 ORANGE_RGB = "FFFFA500"  # כתום
@@ -115,14 +113,14 @@ def ensure_summary_sheet(wb, title, counts):
         r += 1
 
 
-# ---------- קריאת קובץ אקסל עזר (מיילים) ----------
+# ---------- קריאת אקסל עזר (מיילים) ----------
 
 def build_email_mapping(helper_file):
     """
-    בונה מילון {שם ספק/חשבון -> מייל} מקובץ אקסל עזר.
-    מחפש עמודות כמו:
+    בונה מילון {חשבון/שם ספק -> מייל} מקובץ עזר.
+    מחפש עמודות:
+    - 'חשבון' / 'מס ספק'
     - 'שם ספק' / 'תאור חשבון' / 'תיאור חשבון'
-    - 'חשבון'
     - 'מייל' / 'מייל ספק' / 'Email' / 'E-mail'
     """
     wb_help = openpyxl.load_workbook(helper_file, data_only=True)
@@ -142,7 +140,6 @@ def build_email_mapping(helper_file):
     email_map = {}
 
     if col_email is None:
-        # אין עמודת מייל – לא בונים כלום
         return email_map
 
     # לפי חשבון
@@ -169,11 +166,10 @@ def build_email_mapping(helper_file):
 def process_workbook(wb, email_mapping=None):
     """
     מריץ על ה-Workbook את כל הלוגיקות 1–7.
-    email_mapping – מילון אופציונלי {שם ספק/חשבון -> מייל} מאקסל עזר.
+    email_mapping – מילון אופציונלי {חשבון/שם ספק -> מייל}.
     """
-    ws = wb.active  # נניח שהגיליון הראשון הוא המקור
+    ws = wb.active  # הגיליון הראשון הוא המקור
 
-    # זיהוי כותרות
     header_row, headers = detect_headers(ws)
 
     col_acc = headers.get("חשבון")          # מס ספק
@@ -183,15 +179,17 @@ def process_workbook(wb, email_mapping=None):
     col_pay = headers.get("תאריך תשלום")    # תאריך תשלום
 
     if col_acc is None or col_amt is None:
-        raise ValueError("לא נמצאו עמודות 'חשבון' ו/או 'חוב לחשבונית'. ודאי ששמות הכותרות כתובים בדיוק כך.")
+        raise ValueError("לא נמצאו עמודות 'חשבון' ו/או 'חוב לחשבונית'.")
 
-    # ברירות מחדל, למקרה שאין עמודות שם ספק/תאריך
     if col_name is None:
         col_name = 3
     if col_pay is None:
         col_pay = 4
 
-    data_start_row = header_row + 1  # השורה שאחרי הכותרת
+    data_start_row = header_row + 1
+
+    # שם החברה לכותרת מייל
+    company_name = ws["C1"].value if ws["C1"].value is not None else ""
 
     # ===== לוגיקה 1 – ירוק 100% בתוך ספק =====
     groups = defaultdict(list)
@@ -220,7 +218,6 @@ def process_workbook(wb, email_mapping=None):
                 if ni in used_neg:
                     continue
                 if abs(pval + nval) < 1e-6:
-                    # צביעה בירוק
                     prow[col_amt - 1].fill = GREEN_FILL
                     nrow[col_amt - 1].fill = GREEN_FILL
                     green_counts[acc] += 2
@@ -258,7 +255,7 @@ def process_workbook(wb, email_mapping=None):
                 nc = nrow[col_amt - 1]
                 if has_any_color(nc):
                     continue
-                if abs(pval + nval) <= 2:  # סטייה עד 2 ש"ח
+                if abs(pval + nval) <= 2:
                     pc.fill = ORANGE_FILL
                     nc.fill = ORANGE_FILL
                     orange_counts[acc] += 2
@@ -312,7 +309,7 @@ def process_workbook(wb, email_mapping=None):
 
     ensure_summary_sheet(wb, "בדיקת ספקים", purple_counts)
 
-    # ===== לוגיקה 6 – כחול: סוג תנועה 'העב' =====
+    # ===== לוגיקה 6 – כחול: סוג תנועה 'העב' + איסוף למיילים =====
     rows_mail = []
 
     for row in ws.iter_rows(min_row=data_start_row):
@@ -328,11 +325,17 @@ def process_workbook(wb, email_mapping=None):
                     row[col_name - 1].value,   # שם ספק
                     row[col_pay - 1].value,    # תאריך תשלום
                     row[col_amt - 1].value,    # חוב לחשבונית
-                    row[col_acc - 1].value,    # חשבון (לקישור למיילים)
+                    row[col_acc - 1].value,    # חשבון
                 )
             )
 
-    # ===== לוגיקה 7 – גיליון 'מיילים לספק' + טקסט מייל + מייל ספק =====
+    # ===== לוגיקה 7 – גיליון 'מיילים לספק' מאוחד לפי חשבון =====
+
+    # קיבוץ לפי חשבון
+    grouped_mail = defaultdict(list)
+    for name, pay, debt, acc in rows_mail:
+        grouped_mail[str(acc).strip()].append((name, pay, debt))
+
     if "מיילים לספק" in wb.sheetnames:
         ws_mail = wb["מיילים לספק"]
         for r in ws_mail.iter_rows():
@@ -342,55 +345,47 @@ def process_workbook(wb, email_mapping=None):
         ws_mail = wb.create_sheet("מיילים לספק")
 
     ws_mail["A1"] = "שם ספק"
-    ws_mail["B1"] = "תאריך תשלום"
-    ws_mail["C1"] = "חוב לחשבונית"
-    ws_mail["D1"] = "טקסט מייל"
-    ws_mail["E1"] = "מייל ספק"   # <<< עמודת המייל החדשה מאקסל עזר
-
-    company_name = ws["C1"].value if ws["C1"].value is not None else ""
+    ws_mail["B1"] = "טקסט מייל"
+    ws_mail["C1"] = "מייל ספק"
 
     row_idx = 2
-    for name, pay, debt, acc in rows_mail:
-        ws_mail.cell(row_idx, 1, name)
 
-        # עיבוד תאריך
-        if isinstance(pay, datetime):
-            date_str = pay.strftime("%d/%m/%y")
-        else:
-            date_str = str(pay) if pay is not None else ""
-        ws_mail.cell(row_idx, 2, date_str)
+    for acc, entries in grouped_mail.items():
+        name = entries[0][0]
 
-        # סכום בפלוס
-        try:
-            amount = abs(parse_amount(debt))
-        except Exception:
-            amount = debt
-        ws_mail.cell(row_idx, 3, amount)
+        lines = []
+        for _, pay, debt in entries:
+            if isinstance(pay, datetime):
+                date_str = pay.strftime("%d/%m/%y")
+            else:
+                date_str = str(pay) if pay else ""
+            try:
+                amount = abs(parse_amount(debt))
+            except Exception:
+                amount = debt
+            lines.append(f"תאריך - {date_str}\nעל סכום - {amount}")
 
-        # טקסט מייל רב-שורי
+        combined_details = "\n".join(lines)
+
         msg = (
             f"שלום ל-{name}\n"
-            f"חסרה לנו חשבונית עבור תשלום:\n"
-            f"תאריך - {date_str}\n"
-            f"על סכום - {amount}\n"
+            f"חסרות לנו חשבוניות עבור תשלום:\n"
+            f"{combined_details}\n"
             f"בתודה מראש,\n"
             f"הנהלת חשבונות של {company_name}"
         )
-        cell_msg = ws_mail.cell(row_idx, 4, msg)
+
+        ws_mail.cell(row_idx, 1, name)
+        cell_msg = ws_mail.cell(row_idx, 2, msg)
         cell_msg.alignment = Alignment(wrap_text=True)
 
-        # מייל ספק מאקסל עזר (אם קיים)
         supplier_email = ""
         if email_mapping:
-            # קודם לפי חשבון, אם יש
-            if acc is not None:
-                supplier_email = email_mapping.get(str(acc).strip(), "")
-            # אם לא מצא – לפי שם ספק
-            if not supplier_email and name is not None:
+            supplier_email = email_mapping.get(acc, "")
+            if not supplier_email and name:
                 supplier_email = email_mapping.get(str(name).strip(), "")
-
         if supplier_email:
-            ws_mail.cell(row_idx, 5, supplier_email)
+            ws_mail.cell(row_idx, 3, supplier_email)
 
         row_idx += 1
 
@@ -401,15 +396,15 @@ def process_workbook(wb, email_mapping=None):
     return wb
 
 
-# ---------- שליחת טריגר ל-N8N ----------
+# ---------- טריגר ל-N8N ----------
 
 def trigger_n8n(client_name: str):
     """
     שולח טריגר ל-N8N עם שם לקוח.
-    ה-N8N מקבל JSON: { "client_name": "<השם שהוזן>" }
+    ה-N8N מקבל JSON: { "client_name": "<השם>" }
     """
-    if not N8N_WEBHOOK_URL or "YOUR-N8N-DOMAIN" in N8N_WEBHOOK_URL:
-        raise RuntimeError("לא הוגדרה כתובת Webhook אמיתית ל-N8N (N8N_WEBHOOK_URL).")
+    if not N8N_WEBHOOK_URL:
+        raise RuntimeError("לא הוגדרה כתובת Webhook אמיתית ל-N8N.")
 
     payload = {
         "client_name": client_name,
@@ -431,9 +426,9 @@ def main():
 
     st.title("📊 אוטומציית גיול חובות – לוגיקות 1–7 + טריגר ל-N8N")
 
-    # ==== קלט ל-N8N ====
+    # טריגר ל-N8N
     st.subheader("טריגר ל-N8N לפי שם לקוח")
-    client_name = st.text_input("שם לקוח / ספק עבור N8N (למשל: שוקי טל, אילן גינון וכו')")
+    client_name = st.text_input("שם לקוח / ספק עבור N8N (לדוגמה: שוקי טל, אילן גינון וכו')")
 
     col_trig1, col_trig2 = st.columns([1, 4])
     with col_trig1:
@@ -449,12 +444,11 @@ def main():
 
     st.markdown("---")
 
-    # ==== חלק גיול חובות באקסל ====
-    st.subheader("עיבוד קובץ גיול חובות (אקסל)")
+    # חלק האקסל
+    st.subheader("עיבוד קובץ גיול חובות (Excel)")
 
-    uploaded_file = st.file_uploader("בחרי קובץ Excel גיול חובות", type=["xlsx"])
+    uploaded_file = st.file_uploader("בחרי קובץ גיול חובות (xlsx)", type=["xlsx"])
 
-    # אקסל עזר עם מיילים (אופציונלי)
     helper_file = st.file_uploader(
         "קובץ אקסל עזר עם כתובות מייל של ספקים (אופציונלי)",
         type=["xlsx"],
@@ -462,7 +456,7 @@ def main():
     )
 
     if uploaded_file is None:
-        st.info("🔼 בחרי קובץ גיול חובות כדי להריץ לוגיקות 1–7.")
+        st.info("🔼 בחרי קובץ גיול חובות כדי להריץ אוטומציה.")
         return
 
     if st.button("הפעל אוטומציה על הקובץ"):
@@ -478,7 +472,7 @@ def main():
             wb.save(output)
             output.seek(0)
 
-            st.success("✅ האוטומציה הסתיימה בהצלחה! ניתן להוריד את הקובץ המעודכן.")
+            st.success("✅ האוטומציה הסתיימה, אפשר להוריד את הקובץ המעודכן.")
             st.download_button(
                 label="⬇️ הורדת קובץ גיול מעודכן",
                 data=output,
