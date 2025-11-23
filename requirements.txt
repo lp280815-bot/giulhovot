@@ -1,3 +1,8 @@
-streamlit
+fastapi
+uvicorn
+
 openpyxl
-requests
+pandas
+PyPDF2
+streamlit
+
