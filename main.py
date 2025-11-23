@@ -7,44 +7,41 @@ import openpyxl
 
 from giyul_logic import process_workbook
 
-# לוגים של uvicorn מגיעים ל-Render
-logger = logging.getLogger("uvicorn.error")
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Giyul Chovot Processor")
 
 
 @app.post("/process")
 async def process_excel(file: UploadFile = File(...)):
-    logger.info("=== קיבלתי בקשה ל־/process ===")
-    logger.info(f"שם קובץ שהתקבל: {file.filename}")
+    logging.info(f"📥 Received file: {file.filename}")
 
     if not file.filename.lower().endswith((".xlsx", ".xlsm")):
-        logger.error("הקובץ אינו קובץ Excel תקין")
+        logging.error("❌ Wrong file type")
         raise HTTPException(status_code=400, detail="Нужен файл Excel (.xlsx / .xlsm)")
 
-    contents = await file.read()
-    logger.info(f"גודל הקובץ שהתקבל: {len(contents)} bytes")
-
     try:
+        contents = await file.read()
+        logging.info(f"📄 File size: {len(contents)} bytes")
+
         wb = openpyxl.load_workbook(io.BytesIO(contents))
-        logger.info(f"גליונות בקובץ: {wb.sheetnames}")
+        logging.info("📘 Workbook loaded successfully")
 
         wb = process_workbook(wb)
-        logger.info("process_workbook הסתיים בלי שגיאה")
+        logging.info("⚙️ Workbook processed successfully")
 
     except Exception as e:
-        logger.exception("❌ שגיאה בזמן עיבוד הקובץ")
-        raise HTTPException(status_code=500, detail=f"Ошибка обработки файла: {e}")
+        logging.exception("🔥 ERROR while processing the workbook")
+        raise HTTPException(status_code=500, detail=f"Ошибка обработки файла: {str(e)}")
 
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
 
     out_name = file.filename.rsplit(".", 1)[0] + "_processed.xlsx"
-    logger.info(f"מעביר קובץ מעובד בשם: {out_name}")
 
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="{out_name}"'},
+        headers={"Content-Disposition": f'attachment; filename="{out_name}"'}
     )
