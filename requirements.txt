@@ -5,4 +5,6 @@ openpyxl
 pandas
 PyPDF2
 streamlit
+python-multipart
+
 
