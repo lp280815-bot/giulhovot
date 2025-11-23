@@ -115,10 +115,62 @@ def ensure_summary_sheet(wb, title, counts):
         r += 1
 
 
+# ---------- קריאת קובץ אקסל עזר (מיילים) ----------
+
+def build_email_mapping(helper_file):
+    """
+    בונה מילון {שם ספק/חשבון -> מייל} מקובץ אקסל עזר.
+    מחפש עמודות כמו:
+    - 'שם ספק' / 'תאור חשבון' / 'תיאור חשבון'
+    - 'חשבון'
+    - 'מייל' / 'מייל ספק' / 'Email' / 'E-mail'
+    """
+    wb_help = openpyxl.load_workbook(helper_file, data_only=True)
+    ws_help = wb_help.active
+
+    header_row, headers = detect_headers(ws_help)
+
+    col_acc = headers.get("חשבון") or headers.get("מס ספק")
+    col_name = headers.get("שם ספק") or headers.get("תאור חשבון") or headers.get("תיאור חשבון")
+    col_email = (
+        headers.get("מייל")
+        or headers.get("מייל ספק")
+        or headers.get("Email")
+        or headers.get("E-mail")
+    )
+
+    email_map = {}
+
+    if col_email is None:
+        # אין עמודת מייל – לא בונים כלום
+        return email_map
+
+    # לפי חשבון
+    if col_acc is not None:
+        for row in ws_help.iter_rows(min_row=header_row + 1):
+            acc = row[col_acc - 1].value
+            email = row[col_email - 1].value
+            if acc and email:
+                email_map[str(acc).strip()] = str(email).strip()
+
+    # לפי שם ספק
+    if col_name is not None:
+        for row in ws_help.iter_rows(min_row=header_row + 1):
+            name = row[col_name - 1].value
+            email = row[col_email - 1].value
+            if name and email:
+                email_map[str(name).strip()] = str(email).strip()
+
+    return email_map
+
+
 # ---------- לוגיקות 1–7 ----------
 
-def process_workbook(wb):
-    """מריץ על ה-Workbook את כל הלוגיקות 1–7."""
+def process_workbook(wb, email_mapping=None):
+    """
+    מריץ על ה-Workbook את כל הלוגיקות 1–7.
+    email_mapping – מילון אופציונלי {שם ספק/חשבון -> מייל} מאקסל עזר.
+    """
     ws = wb.active  # נניח שהגיליון הראשון הוא המקור
 
     # זיהוי כותרות
@@ -273,13 +325,14 @@ def process_workbook(wb):
             cell.fill = BLUE_FILL
             rows_mail.append(
                 (
-                    row[col_name - 1].value,
-                    row[col_pay - 1].value,
-                    row[col_amt - 1].value,
+                    row[col_name - 1].value,   # שם ספק
+                    row[col_pay - 1].value,    # תאריך תשלום
+                    row[col_amt - 1].value,    # חוב לחשבונית
+                    row[col_acc - 1].value,    # חשבון (לקישור למיילים)
                 )
             )
 
-    # ===== לוגיקה 7 – גיליון 'מיילים לספק' + טקסט מייל =====
+    # ===== לוגיקה 7 – גיליון 'מיילים לספק' + טקסט מייל + מייל ספק =====
     if "מיילים לספק" in wb.sheetnames:
         ws_mail = wb["מיילים לספק"]
         for r in ws_mail.iter_rows():
@@ -292,11 +345,12 @@ def process_workbook(wb):
     ws_mail["B1"] = "תאריך תשלום"
     ws_mail["C1"] = "חוב לחשבונית"
     ws_mail["D1"] = "טקסט מייל"
+    ws_mail["E1"] = "מייל ספק"   # <<< עמודת המייל החדשה מאקסל עזר
 
     company_name = ws["C1"].value if ws["C1"].value is not None else ""
 
     row_idx = 2
-    for name, pay, debt in rows_mail:
+    for name, pay, debt, acc in rows_mail:
         ws_mail.cell(row_idx, 1, name)
 
         # עיבוד תאריך
@@ -324,6 +378,19 @@ def process_workbook(wb):
         )
         cell_msg = ws_mail.cell(row_idx, 4, msg)
         cell_msg.alignment = Alignment(wrap_text=True)
+
+        # מייל ספק מאקסל עזר (אם קיים)
+        supplier_email = ""
+        if email_mapping:
+            # קודם לפי חשבון, אם יש
+            if acc is not None:
+                supplier_email = email_mapping.get(str(acc).strip(), "")
+            # אם לא מצא – לפי שם ספק
+            if not supplier_email and name is not None:
+                supplier_email = email_mapping.get(str(name).strip(), "")
+
+        if supplier_email:
+            ws_mail.cell(row_idx, 5, supplier_email)
 
         row_idx += 1
 
@@ -385,16 +452,27 @@ def main():
     # ==== חלק גיול חובות באקסל ====
     st.subheader("עיבוד קובץ גיול חובות (אקסל)")
 
-    uploaded_file = st.file_uploader("בחרי קובץ Excel", type=["xlsx"])
+    uploaded_file = st.file_uploader("בחרי קובץ Excel גיול חובות", type=["xlsx"])
+
+    # אקסל עזר עם מיילים (אופציונלי)
+    helper_file = st.file_uploader(
+        "קובץ אקסל עזר עם כתובות מייל של ספקים (אופציונלי)",
+        type=["xlsx"],
+        key="helper_excel"
+    )
 
     if uploaded_file is None:
-        st.info("🔼 בחרי קובץ כדי להריץ לוגיקות 1–7.")
+        st.info("🔼 בחרי קובץ גיול חובות כדי להריץ לוגיקות 1–7.")
         return
 
     if st.button("הפעל אוטומציה על הקובץ"):
         try:
+            email_mapping = None
+            if helper_file is not None:
+                email_mapping = build_email_mapping(helper_file)
+
             wb = openpyxl.load_workbook(uploaded_file)
-            wb = process_workbook(wb)
+            wb = process_workbook(wb, email_mapping=email_mapping)
 
             output = io.BytesIO()
             wb.save(output)
