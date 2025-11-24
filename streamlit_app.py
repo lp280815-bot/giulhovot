@@ -10,7 +10,8 @@ import requests
 
 # ========= הגדרות N8N =========
 # להחליף ל-Webhook האמיתי שלך
-N8N_WEBHOOK_URL = "https://riseelena.app.n8n.cloud/webhook/e134717f-c0ad-4e29-a354-1a6f24595c8a"
+N8N_WEBHOOK_URL = "https://riseelena.app.n8n.cloud/webhook/giulhovot-ijeaen7cc8ruf8ncxnr88d"
+
 
 
 # ---------- כלי עזר ----------
