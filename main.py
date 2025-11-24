@@ -29,8 +29,12 @@ async def process(file1: UploadFile = File(...), file2: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"Ошибка чтения файлов: {str(e)}")
 
     # Определяем что есть что
-    type1 = detect_file_type(df1)
-    type2 = detect_file_type(df2)
+     # Файлы ИМЕННО file1 и file2 !!!
+        if 'file1' not in request.files or 'file2' not in request.files:
+            return jsonify({"error": "Missing file1 or file2"}), 400
+
+        file1 = request.files['file1']   # גיול חובות
+        file2 = request.files['file2']   # קובץ מיילים
 
     if type1 == type2:
         raise HTTPException(status_code=400, detail="Оба файла выглядят одинаковыми — не могу определить где גיול חובות и где מיילים")
