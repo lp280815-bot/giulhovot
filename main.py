@@ -153,7 +153,7 @@ def process_workbook(wb, email_mapping=None):
     header_row, headers = detect_headers(ws)
 
     col_acc = headers.get("חשבון")
-    col_amt = headers.get("חוב לחשבונית")
+    col_amt = headers.get("חוב החשבונית")
     col_type = headers.get("סוג תנועה")
     col_name = headers.get("תאור חשבון") or headers.get("שם ספק") or headers.get("תיאור חשבון")
     col_pay = headers.get("תאריך תשלום")
