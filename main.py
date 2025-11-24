@@ -1,95 +1,112 @@
+import io
 import pandas as pd
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
-import uvicorn
-import io
+from fastapi.responses import StreamingResponse
 
 app = FastAPI()
 
 
-# --- Проверка, какой файл какой ---
-def detect_file_type(df):
-    cols = df.columns.astype(str)
-
-    if "חשבון" in cols and "חוב לחשבונית" in cols:
-        return "giyul"
-    if "email" in cols or "מייל" in cols or "כתובת מייל" in cols:
-        return "emails"
-    return None
+@app.get("/")
+async def healthcheck():
+    """
+    Простой health-check, чтобы видеть что сервис жив.
+    """
+    return {
+        "status": "ok",
+        "service": "giulhovot",
+        "message": "service is alive"
+    }
 
 
 @app.post("/process")
-async def process(file1: UploadFile = File(...), file2: UploadFile = File(...)):
-
+async def process(
+    file1: UploadFile = File(...),   # גיול חובות שוקי.N8N.xlsx
+    file2: UploadFile = File(...),   # גיול חובות שוקי.N8N.מיילים.xlsx
+):
+    # ---------- 1. Читаем файлы ----------
     try:
-        # Читаем оба файла в pandas
-        df1 = pd.read_excel(io.BytesIO(await file1.read()))
-        df2 = pd.read_excel(io.BytesIO(await file2.read()))
+        giyul = pd.read_excel(io.BytesIO(await file1.read()))
+        emails = pd.read_excel(io.BytesIO(await file2.read()))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Ошибка чтения файлов: {str(e)}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Ошибка чтения файлов: {e}"
+        )
 
-    # Определяем что есть что
-     # Файлы ИМЕННО file1 и file2 !!!
-        if 'file1' not in request.files or 'file2' not in request.files:
-            return jsonify({"error": "Missing file1 or file2"}), 400
-
-        file1 = request.files['file1']   # גיול חובות
-        file2 = request.files['file2']   # קובץ מיילים
-
-    if type1 == type2:
-        raise HTTPException(status_code=400, detail="Оба файла выглядят одинаковыми — не могу определить где גיול חובות и где מיילים")
-
-    # Определение правильного назначения
-    if type1 == "giyul":
-        giyul = df1
-        emails = df2
-    else:
-        giyul = df2
-        emails = df1
-
-    # Нормализация колонок
+    # Нормализуем названия колонок
     giyul.columns = giyul.columns.astype(str).str.strip()
     emails.columns = emails.columns.astype(str).str.strip()
 
-    # Проверяем нужные колонки
-    required_giyul = ["חשבון", "חוב לחשבונית"]
-    for col in required_giyul:
-        if col not in giyul.columns:
-            raise HTTPException(status_code=400,
-                                detail=f"В גיול חסרה колонка '{col}'")
+    # ---------- 2. Проверяем колонки в גיול ----------
+    required_giyul = [
+        "מטבע",
+        "חשבון",
+        "תאור חשבון",
+        "תאריך תשלום",
+        "ימי פיגור",
+        "חשבונית",
+        "חש. ספק",
+        "סוג תנועה",
+        "תאריך חשבונית",
+        "פרטים",
+        "מזהה מובנה",
+        "סכום החשבונית",
+        "חוב לחשבונית",
+    ]
 
-    # Находим колонку email автоматически
+    missing = [c for c in required_giyul if c not in giyul.columns]
+    if missing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"В גיול חסרות колонки: {', '.join(missing)}"
+        )
+
+    # ---------- 3. Находим колонку с e-mail ----------
     email_col = None
-    possible = ["email", "Email", "E-mail", "מייל", "כתובת מייל"]
+    possible_email_names = ["email", "Email", "E-mail", "e-mail", "מייל", "כתובת מייל"]
 
     for c in emails.columns:
-        if any(word in c for word in possible):
+        if any(p.lower() in c.lower() for p in possible_email_names):
             email_col = c
             break
 
     if email_col is None:
-        raise HTTPException(status_code=400, detail="Во втором файле не найден столбец email")
+        raise HTTPException(
+            status_code=400,
+            detail="Во втором файле не найден столбец с email"
+        )
 
-    # Соединение по номеру поставщика/счёта
-    merge_cols = ["חשבון", "מס ספק", "קוד ספק"]
-
-    join_col = None
-    for col in merge_cols:
-        if col in giyul.columns and col in emails.columns:
-            join_col = col
-            break
+    # ---------- 4. Общая колонка для соединения ----------
+    join_candidates = ["חשבון", "מס ספק", "קוד ספק"]
+    join_col = next(
+        (c for c in join_candidates if c in giyul.columns and c in emails.columns),
+        None
+    )
 
     if join_col is None:
-        raise HTTPException(status_code=400,
-                            detail="Нет общей колонки для соединения между файлами")
+        raise HTTPException(
+            status_code=400,
+            detail="Нет общей колонки для соединения (ищу 'חשבון', 'מס ספק' или 'קוד ספק')"
+        )
 
-    # Объединение
-    result = giyul.merge(emails[[join_col, email_col]], on=join_col, how="left")
+    # ---------- 5. Объединяем ----------
+    result = giyul.merge(
+        emails[[join_col, email_col]],
+        on=join_col,
+        how="left"
+    )
 
-    # Возвращаем результат
-    return JSONResponse({
-        "status": "ok",
-        "message": "Файлы успешно обработаны",
-        "rows": len(result),
-        "columns": list(result.columns)
-    })
+    # ---------- 6. Отдаём готовый Excel ----------
+    output = io.BytesIO()
+    result.to_excel(output, index=False)
+    output.seek(0)
+
+    headers = {
+        "Content-Disposition": 'attachment; filename="giulhovot_result.xlsx"'
+    }
+
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )
