@@ -1,3 +1,27 @@
+import streamlit as st
+
+def check_password():
+    correct_password = st.secrets["APP_PASSWORD"]
+
+    if "password_ok" not in st.session_state:
+        st.session_state["password_ok"] = False
+
+    if not st.session_state["password_ok"]:
+        st.title("🔒 כניסה לאפליקציה")
+        with st.form("login_form"):
+            pwd = st.text_input("סיסמה", type="password")
+            submit = st.form_submit_button("כניסה")
+
+        if submit:
+            if pwd == correct_password:
+                st.session_state["password_ok"] = True
+            else:
+                st.error("❌ סיסמה שגויה")
+                st.stop()
+        else:
+            st.stop()
+
+check_password()
 import io
 from collections import defaultdict
 from datetime import datetime
