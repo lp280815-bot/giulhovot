@@ -164,24 +164,42 @@ const ProcessingTab = () => {
   const [emailModal, setEmailModal] = useState(null); // For email modal
   const [supplierInfo, setSupplierInfo] = useState(null); // Supplier email/phone
   const [emailText, setEmailText] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+
+  // Get email settings from localStorage
+  const getEmailSettings = () => {
+    const settings = localStorage.getItem("emailSettings");
+    return settings ? JSON.parse(settings) : {
+      companyEmail: "office@ilang.co.il",
+      signerName: "ילנה זמליאנסקי",
+      companyName: "אילן גינון ופיתוח בע\"מ"
+    };
+  };
 
   // Open email modal for a row
   const openEmailModal = async (row) => {
     setEmailModal(row);
-    // Generate default email text
+    const settings = getEmailSettings();
+    
+    // Subject
+    setEmailSubject("בקשה לחשבונית חסרה בגין העברה");
+    
+    // Generate email text with new template
     const defaultText = `שלום רב,
 
-בהמשך לבדיקת חשבונות, מצורפת בקשה לחשבונית עבור:
+בהמשך לבדיקתנו, חסרה לנו חשבונית בגין העברה שבוצעה.
 
 ספק: ${row.name}
 חשבון: ${row.account}
 סכום: ${row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪
 תאריך: ${row.date}
-${row.details ? `פרטים: ${row.details}` : ""}
 
-נודה לקבלת החשבונית בהקדם.
+נבקש לקבל את החשבונית בהקדם האפשרי לצורך השלמת הרישומים.
+אשמח לקבל חשבונית חסרה במייל: ${settings.companyEmail}
 
-בברכה`;
+בברכה,
+${settings.signerName}
+${settings.companyName}`;
     setEmailText(defaultText);
     
     // Fetch supplier info
