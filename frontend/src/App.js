@@ -913,6 +913,18 @@ ${settings.companyName}`;
                     )}
                   </div>
 
+                  {/* Email Subject */}
+                  <div>
+                    <h4 className="font-semibold text-gray-700 mb-2">כותרת המייל</h4>
+                    <input
+                      type="text"
+                      value={emailSubject}
+                      onChange={(e) => setEmailSubject(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8] text-sm"
+                      dir="rtl"
+                    />
+                  </div>
+
                   {/* Email Text */}
                   <div>
                     <h4 className="font-semibold text-gray-700 mb-2">טקסט להודעה</h4>
