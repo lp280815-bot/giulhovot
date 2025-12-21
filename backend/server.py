@@ -126,6 +126,7 @@ class ProcessingStats(BaseModel):
     orange_matches: int = 0
     purple_matches: int = 0
     blue_matches: int = 0
+    special_treatment: int = 0  # Rows that didn't match any category
     total_rows: int = 0
     emails_generated: int = 0
 
