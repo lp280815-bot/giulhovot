@@ -310,8 +310,8 @@ ${settings.companyName}`;
     }
   };
 
-  // Send WhatsApp
-  const handleSendWhatsApp = () => {
+  // Send WhatsApp and ask to delete after
+  const handleSendWhatsApp = async () => {
     if (!supplierInfo?.phone) {
       alert("לא נמצא טלפון לספק זה");
       return;
@@ -324,6 +324,44 @@ ${settings.companyName}`;
     }
     const text = encodeURIComponent(emailText);
     window.open(`https://wa.me/${phone}?text=${text}`);
+    
+    // Ask user if message was sent
+    setTimeout(async () => {
+      const confirmed = window.confirm("האם ההודעה נשלחה בוואטסאפ?\n\nאם כן - הספק יימחק מהרשימה.");
+      
+      if (confirmed) {
+        try {
+          // Delete all rows for this supplier
+          const deletedCount = emailModal.allRows?.length || 1;
+          await axios.post(`${API}/delete-supplier-rows`, {
+            category: "emails",
+            supplier_name: emailModal.name,
+            supplier_account: emailModal.account
+          });
+          
+          // Update local state
+          setCategoryDetails(prev => prev.filter(r => 
+            r.name !== emailModal.name && r.account !== emailModal.account
+          ));
+          
+          // Update stats
+          setStats(prev => ({
+            ...prev,
+            emails: Math.max(0, (prev.emails || 0) - deletedCount)
+          }));
+          
+          setEmailSendResult({ success: true, message: `הודעת וואטסאפ נשלחה! נמחקו ${deletedCount} שורות.` });
+          
+          // Close modal after 2 seconds
+          setTimeout(() => {
+            setEmailModal(null);
+            setEmailSendResult(null);
+          }, 2000);
+        } catch (err) {
+          console.error("Error deleting supplier rows:", err);
+        }
+      }
+    }, 1000);
   };
 
   // Save or update supplier from email modal
