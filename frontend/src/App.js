@@ -335,7 +335,7 @@ const ProcessingTab = () => {
               <div className="w-12 h-12 mx-auto bg-blue-500 rounded-full flex items-center justify-center mb-3">
                 <span className="text-white font-bold text-lg">{stats.blue}</span>
               </div>
-              <h4 className="font-semibold text-gray-800 text-sm">העברות בנקאיות</h4>
+              <h4 className="font-semibold text-gray-800 text-sm">העברות בנקאיות בלי חשבונית</h4>
               <p className="text-xs text-blue-600 mt-1">(כחול)</p>
             </div>
 
