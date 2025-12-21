@@ -2,6 +2,9 @@ import io
 import os
 import logging
 import uuid
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 from collections import defaultdict
 from datetime import datetime, timezone
