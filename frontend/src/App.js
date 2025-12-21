@@ -729,6 +729,7 @@ const ProcessingTab = () => {
                                 <option value="match">התאמה ✓</option>
                                 <option value="special">הסר מרשימה</option>
                                 <option value="command">לעשות פקודה</option>
+                                <option value="emails">חסרה חשבונית</option>
                               </select>
                             </td>
                           </tr>
