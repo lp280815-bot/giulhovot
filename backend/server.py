@@ -150,6 +150,7 @@ class ProcessingDetails(BaseModel):
     orange: List[DetailedRow] = []
     purple: List[DetailedRow] = []
     blue: List[DetailedRow] = []
+    emails: List[DetailedRow] = []
 
 
 # ========= Helper Functions =========
