@@ -473,6 +473,20 @@ def process_workbook(wb, email_mapping=None):
     # Count total rows
     stats.total_rows = ws.max_row - header_row
 
+    # Calculate special treatment (rows without any color)
+    unmatched_count = 0
+    for row in ws.iter_rows(min_row=data_start_row):
+        cell = row[col_amt - 1]
+        if not has_any_color(cell):
+            # Check if the cell has a value
+            try:
+                v = parse_amount(cell.value)
+                if v != 0:
+                    unmatched_count += 1
+            except Exception:
+                pass
+    stats.special_treatment = unmatched_count
+
     return wb, stats
 
 
