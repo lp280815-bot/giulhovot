@@ -857,12 +857,13 @@ async def process_excel(
         wb.save(output)
         output.seek(0)
         
-        # Return file
+        # Return file - use URL encoding for Hebrew filename
+        safe_filename = quote(main_file.filename or "output.xlsx")
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={
-                "Content-Disposition": f"attachment; filename=processed_{main_file.filename}",
+                "Content-Disposition": f"attachment; filename*=UTF-8''{safe_filename}",
                 "X-Stats-Green": str(stats.green_matches),
                 "X-Stats-Orange": str(stats.orange_matches),
                 "X-Stats-Purple": str(stats.purple_matches),
