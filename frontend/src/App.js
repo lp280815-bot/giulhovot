@@ -165,6 +165,9 @@ const ProcessingTab = () => {
   const [supplierInfo, setSupplierInfo] = useState(null); // Supplier email/phone
   const [emailText, setEmailText] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
+  const [showAddSupplier, setShowAddSupplier] = useState(false);
+  const [newSupplierData, setNewSupplierData] = useState({ email: "", phone: "" });
+  const [savingSupplier, setSavingSupplier] = useState(false);
 
   // Get email settings from localStorage
   const getEmailSettings = () => {
