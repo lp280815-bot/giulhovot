@@ -150,13 +150,9 @@ const StatsCard = ({ label, value, color }) => (
 // Processing Tab
 const ProcessingTab = () => {
   const [mainFile, setMainFile] = useState(null);
-  const [helperFile, setHelperFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
-  const [n8nClient, setN8nClient] = useState("");
-  const [n8nSending, setN8nSending] = useState(false);
-  const [n8nSuccess, setN8nSuccess] = useState(false);
 
   const handleProcess = async () => {
     if (!mainFile) return;
@@ -168,9 +164,6 @@ const ProcessingTab = () => {
     try {
       const formData = new FormData();
       formData.append("main_file", mainFile);
-      if (helperFile) {
-        formData.append("helper_file", helperFile);
-      }
 
       const response = await axios.post(`${API}/process-excel`, formData, {
         responseType: "blob",
@@ -214,23 +207,6 @@ const ProcessingTab = () => {
       }
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  const handleN8NTrigger = async () => {
-    if (!n8nClient.trim()) return;
-    
-    setN8nSending(true);
-    setN8nSuccess(false);
-    
-    try {
-      await axios.post(`${API}/trigger-n8n`, { client_name: n8nClient });
-      setN8nSuccess(true);
-      setTimeout(() => setN8nSuccess(false), 3000);
-    } catch (err) {
-      setError("שליחת הטריגר נכשלה");
-    } finally {
-      setN8nSending(false);
     }
   };
 
