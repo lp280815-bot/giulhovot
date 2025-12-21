@@ -280,6 +280,10 @@ def process_workbook(wb, email_mapping=None):
     data_start_row = header_row + 1
     company_name = ws["C1"].value if ws["C1"].value is not None else ""
 
+    # Try to find additional columns
+    col_details = headers.get("פרטים") or headers.get("פירוט") or headers.get("תאור")
+    col_invoice = headers.get("חשבונית") or headers.get("מס' חשבונית") or headers.get("מספר חשבונית") or headers.get("אסמכתא")
+
     # Statistics
     stats = ProcessingStats()
     
@@ -292,7 +296,8 @@ def process_workbook(wb, email_mapping=None):
         name_val = row[col_name - 1].value if col_name else ""
         amt_val = row[col_amt - 1].value
         date_val = row[col_pay - 1].value if col_pay else ""
-        doc_val = row[col_doc - 1].value if col_doc else ""
+        details_val = row[col_details - 1].value if col_details else ""
+        invoice_val = row[col_invoice - 1].value if col_invoice else ""
         
         # Format date
         if isinstance(date_val, datetime):
@@ -311,7 +316,8 @@ def process_workbook(wb, email_mapping=None):
             name=str(name_val) if name_val else "",
             amount=amount,
             date=date_str,
-            doc_number=str(doc_val) if doc_val else ""
+            details=str(details_val) if details_val else "",
+            invoice=str(invoice_val) if invoice_val else ""
         )
 
     # ===== Logic 1 - Green 100% within supplier =====
