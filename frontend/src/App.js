@@ -248,6 +248,49 @@ ${settings.companyName}`;
     window.open(`https://wa.me/${phone}?text=${text}`);
   };
 
+  // Save or update supplier from email modal
+  const handleSaveSupplier = async () => {
+    if (!emailModal) return;
+    setSavingSupplier(true);
+    
+    try {
+      if (supplierInfo) {
+        // Update existing supplier
+        await axios.put(`${API}/suppliers/${supplierInfo.id}`, {
+          ...supplierInfo,
+          email: newSupplierData.email || supplierInfo.email,
+          phone: newSupplierData.phone || supplierInfo.phone
+        });
+        setSupplierInfo({
+          ...supplierInfo,
+          email: newSupplierData.email || supplierInfo.email,
+          phone: newSupplierData.phone || supplierInfo.phone
+        });
+      } else {
+        // Create new supplier
+        const newSupplier = {
+          account_number: String(emailModal.account),
+          name: emailModal.name,
+          email: newSupplierData.email,
+          phone: newSupplierData.phone,
+          currency: "ש\"ח",
+          vat_number: "",
+          purchase_account: "",
+          purchase_account_desc: ""
+        };
+        const response = await axios.post(`${API}/suppliers`, newSupplier);
+        setSupplierInfo(response.data);
+      }
+      setShowAddSupplier(false);
+      setNewSupplierData({ email: "", phone: "" });
+    } catch (err) {
+      console.error("Error saving supplier:", err);
+      alert("שגיאה בשמירת הספק");
+    } finally {
+      setSavingSupplier(false);
+    }
+  };
+
   // Handle row action (move to different category)
   const handleRowAction = async (row, action, rowIndex) => {
     if (!action) return;
