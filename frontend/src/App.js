@@ -225,7 +225,7 @@ ${settings.companyName}`;
       alert("לא נמצא מייל לספק זה");
       return;
     }
-    const subject = encodeURIComponent(`בקשה לחשבונית - ${emailModal.name}`);
+    const subject = encodeURIComponent(emailSubject);
     const body = encodeURIComponent(emailText);
     window.open(`mailto:${supplierInfo.email}?subject=${subject}&body=${body}`);
   };
