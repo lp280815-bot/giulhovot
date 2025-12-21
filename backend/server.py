@@ -984,8 +984,8 @@ async def process_excel(
 
 @api_router.get("/processing-details/{category}")
 async def get_processing_details(category: str):
-    """Get detailed rows for a specific category (green, orange, purple, blue)."""
-    if category not in ["green", "orange", "purple", "blue"]:
+    """Get detailed rows for a specific category (green, orange, purple, blue, special, command)."""
+    if category not in ["green", "orange", "purple", "blue", "special", "command"]:
         raise HTTPException(status_code=400, detail="Invalid category")
     
     details = await db.processing_details.find_one({}, {"_id": 0})
@@ -993,6 +993,49 @@ async def get_processing_details(category: str):
         return {"rows": []}
     
     return {"rows": details.get(category, [])}
+
+
+@api_router.post("/move-row")
+async def move_row(request: MoveRowRequest):
+    """Move a row from one category to another."""
+    valid_categories = ["green", "orange", "purple", "blue", "special", "command"]
+    if request.from_category not in valid_categories or request.to_category not in valid_categories:
+        raise HTTPException(status_code=400, detail="Invalid category")
+    
+    details = await db.processing_details.find_one({}, {"_id": 0})
+    if not details:
+        raise HTTPException(status_code=404, detail="No processing data found")
+    
+    # Get source and target lists
+    source_list = details.get(request.from_category, [])
+    target_list = details.get(request.to_category, [])
+    
+    # Find and remove from source by matching row data
+    row_to_move = None
+    for i, row in enumerate(source_list):
+        if (row.get("account") == request.row_data.get("account") and 
+            row.get("name") == request.row_data.get("name") and
+            abs(row.get("amount", 0) - request.row_data.get("amount", 0)) < 0.01 and
+            row.get("date") == request.row_data.get("date")):
+            row_to_move = source_list.pop(i)
+            break
+    
+    if not row_to_move:
+        raise HTTPException(status_code=404, detail="Row not found in source category")
+    
+    # Add to target
+    target_list.append(row_to_move)
+    
+    # Update database
+    await db.processing_details.update_one(
+        {},
+        {"$set": {
+            request.from_category: source_list,
+            request.to_category: target_list
+        }}
+    )
+    
+    return {"success": True, "message": f"Row moved from {request.from_category} to {request.to_category}"}
 
 
 @api_router.post("/preview-excel")
