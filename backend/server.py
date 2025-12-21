@@ -385,6 +385,9 @@ def process_workbook(wb, email_mapping=None):
                     pc.fill = ORANGE_FILL
                     nc.fill = ORANGE_FILL
                     orange_counts[acc] += 2
+                    # Store detailed data
+                    details.orange.append(extract_row_data(prow))
+                    details.orange.append(extract_row_data(nrow))
                     used_neg.add(ni)
                     break
 
