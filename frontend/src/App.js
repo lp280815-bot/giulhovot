@@ -309,45 +309,6 @@ const ProcessingTab = () => {
           </div>
         </div>
       )}
-
-      {/* N8N Trigger Section */}
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-gray-100 p-6 shadow-sm" data-testid="n8n-section">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Mail size={20} className="text-[#00CDB8]" />
-          <span>טריגר לN8N</span>
-        </h3>
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={n8nClient}
-            onChange={(e) => setN8nClient(e.target.value)}
-            placeholder="שם לקוח / ספק"
-            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8] focus:ring-2 focus:ring-[#00CDB8]/20"
-            data-testid="n8n-input"
-          />
-          <button
-            onClick={handleN8NTrigger}
-            disabled={!n8nClient.trim() || n8nSending}
-            className={`px-6 py-3 rounded-xl font-medium transition-all ${
-              n8nClient.trim() && !n8nSending
-                ? "bg-[#00CDB8] text-white hover:bg-[#00B5A3]"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
-            }`}
-            data-testid="n8n-trigger-btn"
-          >
-            {n8nSending ? (
-              <Loader2 size={20} className="animate-spin" />
-            ) : n8nSuccess ? (
-              <Check size={20} />
-            ) : (
-              "שלח"
-            )}
-          </button>
-        </div>
-        {n8nSuccess && (
-          <p className="text-sm text-green-600 mt-2">הטריגר נשלח בהצלחה!</p>
-        )}
-      </div>
     </div>
   );
 };
