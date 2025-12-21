@@ -273,11 +273,45 @@ def process_workbook(wb, email_mapping=None):
     if col_pay is None:
         col_pay = 4
 
+    # Try to find document number column
+    col_doc = headers.get("מס' אסמכתא") or headers.get("מספר אסמכתא") or headers.get("אסמכתא") or headers.get("מס' מסמך")
+
     data_start_row = header_row + 1
     company_name = ws["C1"].value if ws["C1"].value is not None else ""
 
     # Statistics
     stats = ProcessingStats()
+    
+    # Detailed data storage
+    details = ProcessingDetails()
+
+    # Helper function to extract row data
+    def extract_row_data(row):
+        acc_val = row[col_acc - 1].value
+        name_val = row[col_name - 1].value if col_name else ""
+        amt_val = row[col_amt - 1].value
+        date_val = row[col_pay - 1].value if col_pay else ""
+        doc_val = row[col_doc - 1].value if col_doc else ""
+        
+        # Format date
+        if isinstance(date_val, datetime):
+            date_str = date_val.strftime("%d/%m/%Y")
+        else:
+            date_str = str(date_val) if date_val else ""
+        
+        # Parse amount
+        try:
+            amount = parse_amount(amt_val)
+        except:
+            amount = 0
+            
+        return DetailedRow(
+            account=str(acc_val) if acc_val else "",
+            name=str(name_val) if name_val else "",
+            amount=amount,
+            date=date_str,
+            doc_number=str(doc_val) if doc_val else ""
+        )
 
     # ===== Logic 1 - Green 100% within supplier =====
     groups = defaultdict(list)
@@ -309,6 +343,9 @@ def process_workbook(wb, email_mapping=None):
                     prow[col_amt - 1].fill = GREEN_FILL
                     nrow[col_amt - 1].fill = GREEN_FILL
                     green_counts[acc] += 2
+                    # Store detailed data
+                    details.green.append(extract_row_data(prow))
+                    details.green.append(extract_row_data(nrow))
                     used_neg.add(ni)
                     break
 
