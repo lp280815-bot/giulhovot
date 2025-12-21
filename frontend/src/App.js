@@ -978,14 +978,54 @@ ${settings.companyName}`;
                 <div className="p-6 space-y-6">
                   {/* Transaction Details */}
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-semibold text-gray-700 mb-3">פרטי התנועה</h4>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div><span className="text-gray-500">ספק:</span> <span className="font-medium">{emailModal.name}</span></div>
-                      <div><span className="text-gray-500">חשבון:</span> <span className="font-medium">{emailModal.account}</span></div>
-                      <div><span className="text-gray-500">סכום:</span> <span className={`font-medium ${emailModal.amount >= 0 ? "text-green-600" : "text-red-600"}`}>{emailModal.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪</span></div>
-                      <div><span className="text-gray-500">תאריך:</span> <span className="font-medium">{emailModal.date}</span></div>
-                      {emailModal.details && <div className="col-span-2"><span className="text-gray-500">פרטים:</span> <span className="font-medium">{emailModal.details}</span></div>}
+                    <h4 className="font-semibold text-gray-700 mb-3">
+                      פרטי {emailModal.allRows?.length > 1 ? `${emailModal.allRows.length} העברות` : 'התנועה'}
+                    </h4>
+                    <div className="text-sm mb-3">
+                      <span className="text-gray-500">ספק:</span> <span className="font-medium">{emailModal.name}</span>
                     </div>
+                    
+                    {emailModal.allRows?.length > 1 ? (
+                      /* Multiple transfers */
+                      <div className="space-y-2">
+                        <div className="bg-white rounded-lg p-3 max-h-40 overflow-y-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="text-gray-500 border-b">
+                                <th className="text-right pb-2">#</th>
+                                <th className="text-right pb-2">תאריך</th>
+                                <th className="text-right pb-2">סכום</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {emailModal.allRows.map((r, idx) => (
+                                <tr key={idx} className="border-b border-gray-100 last:border-0">
+                                  <td className="py-1">{idx + 1}</td>
+                                  <td className="py-1">{r.date}</td>
+                                  <td className={`py-1 font-medium ${r.amount >= 0 ? "text-green-600" : "text-red-600"}`}>
+                                    {r.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="flex justify-between text-sm font-medium bg-[#00CDB8]/10 rounded-lg p-2">
+                          <span>סה״כ {emailModal.allRows.length} העברות:</span>
+                          <span className="text-[#00CDB8]">
+                            {emailModal.allRows.reduce((sum, r) => sum + (r.amount || 0), 0).toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Single transfer */
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div><span className="text-gray-500">חשבון:</span> <span className="font-medium">{emailModal.account}</span></div>
+                        <div><span className="text-gray-500">סכום:</span> <span className={`font-medium ${emailModal.amount >= 0 ? "text-green-600" : "text-red-600"}`}>{emailModal.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪</span></div>
+                        <div><span className="text-gray-500">תאריך:</span> <span className="font-medium">{emailModal.date}</span></div>
+                        {emailModal.details && <div><span className="text-gray-500">פרטים:</span> <span className="font-medium">{emailModal.details}</span></div>}
+                      </div>
+                    )}
                   </div>
 
                   {/* Supplier Contact Info */}
