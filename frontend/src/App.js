@@ -544,10 +544,25 @@ const ProcessingTab = () => {
                       </select>
                     </div>
                     
+                    {/* Amount Filter */}
+                    <div className="relative">
+                      <label className="block text-xs text-gray-500 mb-1">סינון לפי סכום</label>
+                      <select
+                        value={filters.amount}
+                        onChange={(e) => setFilters({ ...filters, amount: e.target.value })}
+                        className="px-4 py-2 pr-8 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8] bg-white min-w-[150px]"
+                      >
+                        <option value="">הכל</option>
+                        {getUniqueAmounts().map(amt => (
+                          <option key={amt} value={amt}>{amt.toLocaleString("he-IL", { minimumFractionDigits: 2 })}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
                     {/* Clear Filters */}
-                    {(filters.account || filters.name) && (
+                    {(filters.account || filters.name || filters.amount) && (
                       <button
-                        onClick={() => setFilters({ account: "", name: "" })}
+                        onClick={() => setFilters({ account: "", name: "", amount: "" })}
                         className="self-end px-4 py-2 text-sm text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         נקה סינון
