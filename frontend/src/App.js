@@ -179,25 +179,48 @@ const ProcessingTab = () => {
     };
   };
 
-  // Open email modal for a row
+  // Open email modal for a row - aggregate all rows for the same supplier
   const openEmailModal = async (row) => {
-    setEmailModal(row);
     const settings = getEmailSettings();
     
-    // Subject
-    setEmailSubject("בקשה לחשבונית חסרה בגין העברה");
+    // Find all rows for the same supplier (by name or account)
+    const supplierRows = categoryDetails.filter(r => 
+      r.name === row.name || r.account === row.account
+    );
     
-    // Generate email text with new template
+    // Store all rows for reference
+    setEmailModal({ ...row, allRows: supplierRows });
+    
+    // Calculate totals
+    const totalAmount = supplierRows.reduce((sum, r) => sum + (r.amount || 0), 0);
+    const transferCount = supplierRows.length;
+    
+    // Determine singular/plural text
+    const invoiceText = transferCount === 1 ? "חשבונית חסרה" : "חשבוניות חסרות";
+    const transferText = transferCount === 1 ? "העברה שבוצעה" : "העברות שבוצעו";
+    
+    // Subject - singular or plural
+    setEmailSubject(`בקשה ל${invoiceText} בגין ${transferText}`);
+    
+    // Build transfers list
+    let transfersList = "";
+    supplierRows.forEach((r, idx) => {
+      transfersList += `${idx + 1}. תאריך: ${r.date} | סכום: ${r.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪\n`;
+    });
+    
+    // Generate email text with all transfers
     const defaultText = `שלום רב,
 
-בהמשך לבדיקתנו, חסרה לנו חשבונית בגין העברה שבוצעה.
+בהמשך לבדיקתנו, חסרות לנו ${invoiceText} בגין ${transferText}.
 
 ספק: ${row.name}
-סכום: ${row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪
-תאריך: ${row.date}
+מספר העברות: ${transferCount}
+סה"כ: ${totalAmount.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪
 
-נבקש לקבל את החשבונית בהקדם האפשרי לצורך השלמת הרישומים.
-אשמח לקבל חשבונית חסרה במייל: ${settings.companyEmail}
+פירוט ההעברות:
+${transfersList}
+נבקש לקבל את ה${invoiceText} בהקדם האפשרי לצורך השלמת הרישומים.
+אשמח לקבל ${invoiceText} במייל: ${settings.companyEmail}
 
 בברכה,
 ${settings.signerName}
