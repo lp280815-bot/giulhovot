@@ -470,16 +470,21 @@ const ProcessingTab = () => {
           {/* Expanded Details Table */}
           {expandedCategory && (
             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden animate-fade-in">
-              <div className={`px-4 py-3 font-semibold text-white ${
+              <div className={`px-4 py-3 font-semibold text-white flex items-center justify-between ${
                 expandedCategory === "green" ? "bg-green-500" :
                 expandedCategory === "orange" ? "bg-orange-500" :
                 expandedCategory === "purple" ? "bg-purple-500" :
                 "bg-blue-500"
               }`}>
-                {expandedCategory === "green" && "התאמה 100% - פירוט"}
-                {expandedCategory === "orange" && "התאמה 80% - פירוט"}
-                {expandedCategory === "purple" && "בדיקת ספקים - פירוט"}
-                {expandedCategory === "blue" && "העברות בנקאיות בלי חשבונית - פירוט"}
+                <span>
+                  {expandedCategory === "green" && "התאמה 100% - פירוט"}
+                  {expandedCategory === "orange" && "התאמה 80% - פירוט"}
+                  {expandedCategory === "purple" && "בדיקת ספקים - פירוט"}
+                  {expandedCategory === "blue" && "העברות בנקאיות בלי חשבונית - פירוט"}
+                </span>
+                <span className="text-sm opacity-80">
+                  {getFilteredAndSortedDetails().length} שורות
+                </span>
               </div>
               
               {loadingDetails ? (
@@ -489,32 +494,74 @@ const ProcessingTab = () => {
               ) : categoryDetails.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">אין נתונים להצגה</div>
               ) : (
-                <div className="overflow-x-auto max-h-96">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 sticky top-0">
-                      <tr>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-600">חשבון</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-600">שם</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-600">סכום</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-600">תאריך</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-600">אסמכתא</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {categoryDetails.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50">
-                          <td className="px-4 py-2 text-gray-800">{row.account}</td>
-                          <td className="px-4 py-2 text-gray-800">{row.name}</td>
-                          <td className={`px-4 py-2 font-medium ${row.amount >= 0 ? "text-green-600" : "text-red-600"}`}>
-                            {row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })}
-                          </td>
-                          <td className="px-4 py-2 text-gray-600">{row.date}</td>
-                          <td className="px-4 py-2 text-gray-600">{row.doc_number}</td>
+                <>
+                  {/* Filter Input */}
+                  <div className="p-4 border-b border-gray-200 bg-gray-50">
+                    <input
+                      type="text"
+                      value={detailsFilter}
+                      onChange={(e) => setDetailsFilter(e.target.value)}
+                      placeholder="חיפוש לפי חשבון, שם, סכום, תאריך או אסמכתא..."
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8] focus:ring-1 focus:ring-[#00CDB8]"
+                    />
+                  </div>
+                  
+                  <div className="overflow-x-auto max-h-[500px]">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-100 sticky top-0">
+                        <tr>
+                          <th 
+                            onClick={() => handleSort("account")}
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+                          >
+                            חשבון {getSortIcon("account")}
+                          </th>
+                          <th 
+                            onClick={() => handleSort("name")}
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+                          >
+                            שם {getSortIcon("name")}
+                          </th>
+                          <th 
+                            onClick={() => handleSort("amount")}
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+                          >
+                            סכום {getSortIcon("amount")}
+                          </th>
+                          <th 
+                            onClick={() => handleSort("date")}
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+                          >
+                            תאריך {getSortIcon("date")}
+                          </th>
+                          <th 
+                            onClick={() => handleSort("doc_number")}
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+                          >
+                            אסמכתא {getSortIcon("doc_number")}
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {getFilteredAndSortedDetails().map((row, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50">
+                            <td className="px-4 py-2 text-gray-800">{row.account}</td>
+                            <td className="px-4 py-2 text-gray-800">{row.name}</td>
+                            <td className={`px-4 py-2 font-medium ${row.amount >= 0 ? "text-green-600" : "text-red-600"}`}>
+                              {row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })}
+                            </td>
+                            <td className="px-4 py-2 text-gray-600">{row.date}</td>
+                            <td className="px-4 py-2 text-gray-600">{row.doc_number}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {getFilteredAndSortedDetails().length === 0 && detailsFilter && (
+                    <div className="text-center py-4 text-gray-500">לא נמצאו תוצאות לחיפוש</div>
+                  )}
+                </>
               )}
             </div>
           )}
