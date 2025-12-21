@@ -158,23 +158,21 @@ const ProcessingTab = () => {
   const [expandedCategory, setExpandedCategory] = useState(null);
   const [categoryDetails, setCategoryDetails] = useState([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [filters, setFilters] = useState({ account: "", name: "" });
+  const [filters, setFilters] = useState({ account: "", name: "", amount: "" });
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-  const [showAccountFilter, setShowAccountFilter] = useState(false);
-  const [showNameFilter, setShowNameFilter] = useState(false);
 
   const handleCategoryClick = async (category) => {
     if (expandedCategory === category) {
       setExpandedCategory(null);
       setCategoryDetails([]);
-      setFilters({ account: "", name: "" });
+      setFilters({ account: "", name: "", amount: "" });
       setSortConfig({ key: null, direction: "asc" });
       return;
     }
     
     setLoadingDetails(true);
     setExpandedCategory(category);
-    setFilters({ account: "", name: "" });
+    setFilters({ account: "", name: "", amount: "" });
     setSortConfig({ key: null, direction: "asc" });
     
     try {
