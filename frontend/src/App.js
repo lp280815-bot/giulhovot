@@ -161,6 +161,72 @@ const ProcessingTab = () => {
   const [filters, setFilters] = useState({ account: "", name: "", amount: "" });
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [movingRow, setMovingRow] = useState(null);
+  const [emailModal, setEmailModal] = useState(null); // For email modal
+  const [supplierInfo, setSupplierInfo] = useState(null); // Supplier email/phone
+  const [emailText, setEmailText] = useState("");
+
+  // Open email modal for a row
+  const openEmailModal = async (row) => {
+    setEmailModal(row);
+    // Generate default email text
+    const defaultText = `שלום רב,
+
+בהמשך לבדיקת חשבונות, מצורפת בקשה לחשבונית עבור:
+
+ספק: ${row.name}
+חשבון: ${row.account}
+סכום: ${row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪
+תאריך: ${row.date}
+${row.details ? `פרטים: ${row.details}` : ""}
+
+נודה לקבלת החשבונית בהקדם.
+
+בברכה`;
+    setEmailText(defaultText);
+    
+    // Fetch supplier info
+    try {
+      const response = await axios.get(`${API}/suppliers`);
+      const suppliers = response.data;
+      // Find supplier by account number or name
+      const supplier = suppliers.find(s => 
+        s.account_number === row.account || 
+        s.name === row.name ||
+        s.account_number === String(row.account)
+      );
+      setSupplierInfo(supplier || null);
+    } catch (err) {
+      console.error("Error fetching supplier:", err);
+      setSupplierInfo(null);
+    }
+  };
+
+  // Send email (opens default email client)
+  const handleSendEmail = () => {
+    if (!supplierInfo?.email) {
+      alert("לא נמצא מייל לספק זה");
+      return;
+    }
+    const subject = encodeURIComponent(`בקשה לחשבונית - ${emailModal.name}`);
+    const body = encodeURIComponent(emailText);
+    window.open(`mailto:${supplierInfo.email}?subject=${subject}&body=${body}`);
+  };
+
+  // Send WhatsApp
+  const handleSendWhatsApp = () => {
+    if (!supplierInfo?.phone) {
+      alert("לא נמצא טלפון לספק זה");
+      return;
+    }
+    // Clean phone number - remove spaces, dashes, etc.
+    let phone = supplierInfo.phone.replace(/[\s\-\(\)]/g, "");
+    // Add Israel country code if needed
+    if (phone.startsWith("0")) {
+      phone = "972" + phone.substring(1);
+    }
+    const text = encodeURIComponent(emailText);
+    window.open(`https://wa.me/${phone}?text=${text}`);
+  };
 
   // Handle row action (move to different category)
   const handleRowAction = async (row, action, rowIndex) => {
