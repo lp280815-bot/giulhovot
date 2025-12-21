@@ -1105,6 +1105,51 @@ async def delete_row(request: DeleteRowRequest):
     return {"success": True, "message": f"Row deleted from {request.from_category}"}
 
 
+@api_router.post("/send-email")
+async def send_email(request: SendEmailRequest):
+    """Send email via SMTP (Outlook/Office 365)."""
+    try:
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = request.subject
+        msg['From'] = f"{request.sender_name} <{request.sender_email}>" if request.sender_name else request.sender_email
+        msg['To'] = request.recipient_email
+        
+        # Create plain text and HTML versions
+        text_body = request.body
+        html_body = f"""
+        <html dir="rtl">
+        <body style="font-family: Arial, sans-serif; direction: rtl; text-align: right;">
+            {request.body.replace(chr(10), '<br>')}
+        </body>
+        </html>
+        """
+        
+        part1 = MIMEText(text_body, 'plain', 'utf-8')
+        part2 = MIMEText(html_body, 'html', 'utf-8')
+        msg.attach(part1)
+        msg.attach(part2)
+        
+        # Connect to Outlook SMTP server
+        with smtplib.SMTP('smtp.office365.com', 587) as server:
+            server.starttls()
+            server.login(request.sender_email, request.sender_password)
+            server.sendmail(request.sender_email, request.recipient_email, msg.as_string())
+        
+        logger.info(f"Email sent successfully from {request.sender_email} to {request.recipient_email}")
+        return {"success": True, "message": "המייל נשלח בהצלחה"}
+    
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"SMTP Authentication failed: {e}")
+        raise HTTPException(status_code=401, detail="שגיאת אימות - בדקי את המייל וסיסמת האפליקציה")
+    except smtplib.SMTPException as e:
+        logger.error(f"SMTP Error: {e}")
+        raise HTTPException(status_code=500, detail=f"שגיאה בשליחת המייל: {str(e)}")
+    except Exception as e:
+        logger.error(f"Email sending error: {e}")
+        raise HTTPException(status_code=500, detail=f"שגיאה: {str(e)}")
+
+
 @api_router.post("/preview-excel")
 async def preview_excel(file: UploadFile = File(...)):
     """Preview first few rows of uploaded Excel file."""
