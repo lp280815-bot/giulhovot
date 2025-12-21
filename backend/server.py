@@ -883,9 +883,10 @@ async def process_excel(
                 "X-Stats-Orange": str(stats.orange_matches),
                 "X-Stats-Purple": str(stats.purple_matches),
                 "X-Stats-Blue": str(stats.blue_matches),
+                "X-Stats-Special": str(stats.special_treatment),
                 "X-Stats-Total": str(stats.total_rows),
                 "X-Stats-Emails": str(stats.emails_generated),
-                "Access-Control-Expose-Headers": "X-Stats-Green,X-Stats-Orange,X-Stats-Purple,X-Stats-Blue,X-Stats-Total,X-Stats-Emails,Content-Disposition"
+                "Access-Control-Expose-Headers": "X-Stats-Green,X-Stats-Orange,X-Stats-Purple,X-Stats-Blue,X-Stats-Special,X-Stats-Total,X-Stats-Emails,Content-Disposition"
             }
         )
         
