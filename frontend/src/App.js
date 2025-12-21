@@ -289,15 +289,83 @@ const ProcessingTab = () => {
         </div>
       )}
 
-      {/* Stats Display */}
-      {stats && (
-        <div className="max-w-4xl mx-auto" data-testid="stats-display">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">תוצאות העיבוד</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatsCard label="התאמה 100%" value={stats.green} color="bg-green-500" />
-            <StatsCard label="התאמה 80%" value={stats.orange} color="bg-orange-500" />
-            <StatsCard label="בדיקת ספקים" value={stats.purple} color="bg-purple-500" />
-            <StatsCard label="מיילים נוצרו" value={stats.emails} color="bg-blue-500" />
+      {/* Results Display with Action Buttons */}
+      {stats && processedFileUrl && (
+        <div className="max-w-4xl mx-auto space-y-6" data-testid="stats-display">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full mb-4">
+              <Check size={20} />
+              <span className="font-medium">העיבוד הושלם בהצלחה!</span>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800">תוצאות העיבוד</h3>
+          </div>
+
+          {/* Result Buttons */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {/* Green - 100% Match */}
+            <div className="bg-white rounded-2xl border-2 border-green-500 p-4 text-center hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 mx-auto bg-green-500 rounded-full flex items-center justify-center mb-3">
+                <span className="text-white font-bold text-lg">{stats.green}</span>
+              </div>
+              <h4 className="font-semibold text-gray-800 text-sm">התאמה 100%</h4>
+              <p className="text-xs text-green-600 mt-1">(ירוק)</p>
+            </div>
+
+            {/* Orange - 80% Match */}
+            <div className="bg-white rounded-2xl border-2 border-orange-500 p-4 text-center hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 mx-auto bg-orange-500 rounded-full flex items-center justify-center mb-3">
+                <span className="text-white font-bold text-lg">{stats.orange}</span>
+              </div>
+              <h4 className="font-semibold text-gray-800 text-sm">התאמה 80%</h4>
+              <p className="text-xs text-orange-600 mt-1">(כתום)</p>
+            </div>
+
+            {/* Purple - Supplier Check */}
+            <div className="bg-white rounded-2xl border-2 border-purple-500 p-4 text-center hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 mx-auto bg-purple-500 rounded-full flex items-center justify-center mb-3">
+                <span className="text-white font-bold text-lg">{stats.purple}</span>
+              </div>
+              <h4 className="font-semibold text-gray-800 text-sm">בדיקת ספקים</h4>
+              <p className="text-xs text-purple-600 mt-1">(סגול)</p>
+            </div>
+
+            {/* Blue - Bank Transfers */}
+            <div className="bg-white rounded-2xl border-2 border-blue-500 p-4 text-center hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 mx-auto bg-blue-500 rounded-full flex items-center justify-center mb-3">
+                <span className="text-white font-bold text-lg">{stats.blue}</span>
+              </div>
+              <h4 className="font-semibold text-gray-800 text-sm">העברות בנקאיות</h4>
+              <p className="text-xs text-blue-600 mt-1">(כחול)</p>
+            </div>
+
+            {/* Emails */}
+            <div className="bg-white rounded-2xl border-2 border-[#00CDB8] p-4 text-center hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 mx-auto bg-[#00CDB8] rounded-full flex items-center justify-center mb-3">
+                <span className="text-white font-bold text-lg">{stats.emails}</span>
+              </div>
+              <h4 className="font-semibold text-gray-800 text-sm">מיילים לספק</h4>
+              <p className="text-xs text-[#00CDB8] mt-1">(נוצרו)</p>
+            </div>
+          </div>
+
+          {/* Download Button */}
+          <div className="flex flex-col items-center gap-4 pt-4">
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-3 bg-[#00CDB8] text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-[#00B5A3] shadow-lg hover:shadow-xl transition-all"
+              data-testid="download-btn"
+            >
+              <Download size={24} />
+              <span>הורד קובץ מעובד</span>
+            </button>
+            <button
+              onClick={handleReset}
+              className="text-gray-500 hover:text-gray-700 text-sm flex items-center gap-2"
+              data-testid="reset-btn"
+            >
+              <RefreshCw size={16} />
+              <span>עיבוד קובץ חדש</span>
+            </button>
           </div>
         </div>
       )}
