@@ -244,27 +244,19 @@ const ProcessingTab = () => {
         </div>
         <p className="text-sm text-[#00CDB8] mb-4">הנהלת חשבונות מתקדמת</p>
         <h1 className="text-4xl font-bold text-gray-800">
-          <span className="text-[#00CDB8]">אופטימיזציה פיננסית</span> בלחיצת כפתור
+          <span className="text-[#00CDB8]">גיול חובות</span> אוטומטי
         </h1>
       </div>
 
-      {/* Upload Cards */}
-      <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      {/* Upload Card */}
+      <div className="max-w-md mx-auto">
         <UploadCard
-          title="קובץ דף בנק"
-          description="העלה קובץ DataSheet"
+          title="גיול חובות"
+          description="העלה קובץ Excel לעיבוד"
           icon={Building2}
           file={mainFile}
           onFileSelect={setMainFile}
           onRemove={() => setMainFile(null)}
-        />
-        <UploadCard
-          title="קובץ עזר מסב"
-          description="להתאמות מקבץ-נט"
-          icon={FileText}
-          file={helperFile}
-          onFileSelect={setHelperFile}
-          onRemove={() => setHelperFile(null)}
         />
       </div>
 
