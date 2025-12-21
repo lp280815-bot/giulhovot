@@ -354,15 +354,25 @@ const SuppliersTab = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
+  const [importFile, setImportFile] = useState(null);
+  const [importResult, setImportResult] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     account_number: "",
     name: "",
+    currency: "ש\"ח",
+    vat_number: "",
+    purchase_account: "",
+    purchase_account_desc: "",
     email: "",
     phone: "",
   });
 
   const fetchSuppliers = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`${API}/suppliers`);
       setSuppliers(response.data);
@@ -388,10 +398,23 @@ const SuppliersTab = () => {
       fetchSuppliers();
       setShowForm(false);
       setEditingSupplier(null);
-      setFormData({ account_number: "", name: "", email: "", phone: "" });
+      resetForm();
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      account_number: "",
+      name: "",
+      currency: "ש\"ח",
+      vat_number: "",
+      purchase_account: "",
+      purchase_account_desc: "",
+      email: "",
+      phone: "",
+    });
   };
 
   const handleEdit = (supplier) => {
@@ -399,6 +422,10 @@ const SuppliersTab = () => {
     setFormData({
       account_number: supplier.account_number,
       name: supplier.name,
+      currency: supplier.currency || "ש\"ח",
+      vat_number: supplier.vat_number || "",
+      purchase_account: supplier.purchase_account || "",
+      purchase_account_desc: supplier.purchase_account_desc || "",
       email: supplier.email || "",
       phone: supplier.phone || "",
     });
@@ -415,28 +442,260 @@ const SuppliersTab = () => {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (!window.confirm("האם למחוק את כל הספקים? פעולה זו בלתי הפיכה!")) return;
+    if (!window.confirm("האם את/ה בטוח/ה? כל הספקים יימחקו לצמיתות!")) return;
+    try {
+      await axios.delete(`${API}/suppliers`);
+      fetchSuppliers();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleImport = async (replaceAll = false) => {
+    if (!importFile) return;
+    
+    setImporting(true);
+    setImportResult(null);
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", importFile);
+      
+      const response = await axios.post(
+        `${API}/suppliers/import?replace_all=${replaceAll}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      
+      setImportResult(response.data);
+      fetchSuppliers();
+    } catch (err) {
+      console.error(err);
+      setImportResult({ 
+        errors: 1, 
+        error_messages: [err.response?.data?.detail || "שגיאה בייבוא הקובץ"] 
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await axios.get(`${API}/suppliers/template`, {
+        responseType: "blob"
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "suppliers_template.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const response = await axios.get(`${API}/suppliers/export`, {
+        responseType: "blob"
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "suppliers_export.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const filteredSuppliers = suppliers.filter(s => 
+    s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.account_number?.includes(searchTerm) ||
+    s.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-6" data-testid="suppliers-tab">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">ניהול ספקים</h2>
-        <button
-          onClick={() => {
-            setShowForm(true);
-            setEditingSupplier(null);
-            setFormData({ account_number: "", name: "", email: "", phone: "" });
-          }}
-          className="flex items-center gap-2 bg-[#00CDB8] text-white px-4 py-2 rounded-xl hover:bg-[#00B5A3] transition-colors"
-          data-testid="add-supplier-btn"
-        >
-          <Plus size={20} />
-          <span>הוסף ספק</span>
-        </button>
+      {/* Header with Actions */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold text-gray-800">ניהול ספקים ({suppliers.length})</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleDownloadTemplate}
+            className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-200 transition-colors"
+            data-testid="download-template-btn"
+          >
+            <Download size={18} />
+            <span>תבנית</span>
+          </button>
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-xl hover:bg-blue-600 transition-colors"
+            data-testid="import-btn"
+          >
+            <Upload size={18} />
+            <span>ייבוא מאקסל</span>
+          </button>
+          <button
+            onClick={handleExport}
+            disabled={suppliers.length === 0}
+            className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            data-testid="export-btn"
+          >
+            <Download size={18} />
+            <span>ייצוא</span>
+          </button>
+          <button
+            onClick={() => {
+              setShowForm(true);
+              setEditingSupplier(null);
+              resetForm();
+            }}
+            className="flex items-center gap-2 bg-[#00CDB8] text-white px-4 py-2 rounded-xl hover:bg-[#00B5A3] transition-colors"
+            data-testid="add-supplier-btn"
+          >
+            <Plus size={18} />
+            <span>הוסף ספק</span>
+          </button>
+          {suppliers.length > 0 && (
+            <button
+              onClick={handleDeleteAll}
+              className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-xl hover:bg-red-600 transition-colors"
+              data-testid="delete-all-btn"
+            >
+              <Trash2 size={18} />
+              <span>מחק הכל</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Search */}
+      <div className="bg-white rounded-xl border border-gray-200 p-2">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="חיפוש לפי שם, מספר חשבון או מייל..."
+          className="w-full px-4 py-2 focus:outline-none"
+          data-testid="search-suppliers"
+        />
+      </div>
+
+      {/* Import Modal */}
+      {showImport && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold">ייבוא ספקים מאקסל</h3>
+              <button onClick={() => { setShowImport(false); setImportFile(null); setImportResult(null); }}>
+                <X size={24} className="text-gray-400 hover:text-gray-600" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* File Upload */}
+              <div 
+                className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
+                  importFile ? "border-[#00CDB8] bg-[#00CDB8]/5" : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                {importFile ? (
+                  <div className="space-y-2">
+                    <Check size={32} className="mx-auto text-[#00CDB8]" />
+                    <p className="font-medium">{importFile.name}</p>
+                    <button 
+                      onClick={() => setImportFile(null)}
+                      className="text-sm text-red-500 hover:text-red-600"
+                    >
+                      הסר קובץ
+                    </button>
+                  </div>
+                ) : (
+                  <label className="cursor-pointer block">
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept=".xlsx"
+                      onChange={(e) => e.target.files[0] && setImportFile(e.target.files[0])}
+                    />
+                    <Upload size={32} className="mx-auto text-gray-400 mb-2" />
+                    <p className="text-gray-600">לחץ לבחירת קובץ או גרור לכאן</p>
+                    <p className="text-sm text-gray-400 mt-1">קבצי xlsx בלבד</p>
+                  </label>
+                )}
+              </div>
+
+              {/* Import Result */}
+              {importResult && (
+                <div className={`p-4 rounded-xl ${importResult.errors > 0 ? "bg-red-50" : "bg-green-50"}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    {importResult.errors > 0 ? (
+                      <AlertCircle className="text-red-500" size={20} />
+                    ) : (
+                      <Check className="text-green-500" size={20} />
+                    )}
+                    <span className="font-medium">
+                      {importResult.errors > 0 ? "הייבוא הסתיים עם שגיאות" : "הייבוא הסתיים בהצלחה!"}
+                    </span>
+                  </div>
+                  <div className="text-sm space-y-1">
+                    <p>סה״כ שורות: {importResult.total}</p>
+                    <p className="text-green-600">ספקים חדשים: {importResult.imported}</p>
+                    <p className="text-blue-600">ספקים עודכנו: {importResult.updated}</p>
+                    {importResult.errors > 0 && (
+                      <p className="text-red-600">שגיאות: {importResult.errors}</p>
+                    )}
+                    {importResult.error_messages?.length > 0 && (
+                      <div className="mt-2 text-red-600">
+                        {importResult.error_messages.slice(0, 5).map((msg, i) => (
+                          <p key={i}>{msg}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleImport(false)}
+                  disabled={!importFile || importing}
+                  className="flex-1 bg-[#00CDB8] text-white py-3 rounded-xl font-medium hover:bg-[#00B5A3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {importing ? <Loader2 className="mx-auto animate-spin" size={20} /> : "ייבוא והוספה"}
+                </button>
+                <button
+                  onClick={() => handleImport(true)}
+                  disabled={!importFile || importing}
+                  className="flex-1 bg-orange-500 text-white py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {importing ? <Loader2 className="mx-auto animate-spin" size={20} /> : "החלף הכל"}
+                </button>
+              </div>
+              
+              <p className="text-xs text-gray-500 text-center">
+                * &quot;ייבוא והוספה&quot; - מוסיף ספקים חדשים ומעדכן קיימים לפי מספר חשבון<br/>
+                * &quot;החלף הכל&quot; - מוחק את כל הספקים הקיימים ומייבא מחדש
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Supplier Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" data-testid="supplier-form-modal">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold">
                 {editingSupplier ? "עריכת ספק" : "הוספת ספק חדש"}
@@ -446,47 +705,85 @@ const SuppliersTab = () => {
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">מספר חשבון</label>
-                <input
-                  type="text"
-                  value={formData.account_number}
-                  onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
-                  required
-                  data-testid="supplier-account-input"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">שם ספק</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
-                  required
-                  data-testid="supplier-name-input"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">מייל</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
-                  data-testid="supplier-email-input"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">טלפון</label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
-                  data-testid="supplier-phone-input"
-                />
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">מס׳ ספק *</label>
+                  <input
+                    type="text"
+                    value={formData.account_number}
+                    onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
+                    required
+                    data-testid="supplier-account-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">שם ספק *</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
+                    required
+                    data-testid="supplier-name-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">מטבע</label>
+                  <input
+                    type="text"
+                    value={formData.currency}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">מס. עוסק מורשה</label>
+                  <input
+                    type="text"
+                    value={formData.vat_number}
+                    onChange={(e) => setFormData({ ...formData, vat_number: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">חשבון קניות</label>
+                  <input
+                    type="text"
+                    value={formData.purchase_account}
+                    onChange={(e) => setFormData({ ...formData, purchase_account: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">תאור חשבון קניות</label>
+                  <input
+                    type="text"
+                    value={formData.purchase_account_desc}
+                    onChange={(e) => setFormData({ ...formData, purchase_account_desc: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">טלפון</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
+                    data-testid="supplier-phone-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">מייל</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
+                    data-testid="supplier-email-input"
+                  />
+                </div>
               </div>
               <div className="flex gap-3 pt-4">
                 <button
@@ -494,7 +791,7 @@ const SuppliersTab = () => {
                   className="flex-1 bg-[#00CDB8] text-white py-3 rounded-xl font-medium hover:bg-[#00B5A3] transition-colors"
                   data-testid="supplier-submit-btn"
                 >
-                  {editingSupplier ? "עדכן" : "הוסף"}
+                  {editingSupplier ? "שמור שינויים" : "הוסף ספק"}
                 </button>
                 <button
                   type="button"
@@ -514,45 +811,59 @@ const SuppliersTab = () => {
         <div className="flex justify-center py-12">
           <Loader2 size={32} className="animate-spin text-[#00CDB8]" />
         </div>
-      ) : suppliers.length === 0 ? (
+      ) : filteredSuppliers.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
           <Users size={48} className="mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-500">אין ספקים במערכת</p>
+          <p className="text-gray-500">{searchTerm ? "לא נמצאו ספקים תואמים" : "אין ספקים במערכת"}</p>
+          {!searchTerm && (
+            <button
+              onClick={() => setShowImport(true)}
+              className="mt-4 text-[#00CDB8] hover:underline"
+            >
+              ייבא ספקים מקובץ אקסל
+            </button>
+          )}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-x-auto">
           <table className="w-full" data-testid="suppliers-table">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">מספר חשבון</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">שם ספק</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">מייל</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">טלפון</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">פעולות</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">מס׳ ספק</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">שם ספק</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">עוסק מורשה</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">חשבון קניות</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">טלפון</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">מייל</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600 whitespace-nowrap">פעולות</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {suppliers.map((supplier) => (
+              {filteredSuppliers.map((supplier) => (
                 <tr key={supplier.id} className="hover:bg-gray-50" data-testid={`supplier-row-${supplier.id}`}>
-                  <td className="px-6 py-4 text-sm text-gray-800">{supplier.account_number}</td>
-                  <td className="px-6 py-4 text-sm text-gray-800 font-medium">{supplier.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{supplier.email || "-"}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{supplier.phone || "-"}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
+                  <td className="px-4 py-3 text-sm text-gray-800">{supplier.account_number}</td>
+                  <td className="px-4 py-3 text-sm text-gray-800 font-medium">{supplier.name}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{supplier.vat_number || "-"}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{supplier.purchase_account_desc || supplier.purchase_account || "-"}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{supplier.phone || "-"}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{supplier.email || "-"}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => handleEdit(supplier)}
                         className="p-2 text-gray-400 hover:text-[#00CDB8] hover:bg-[#00CDB8]/10 rounded-lg transition-colors"
+                        title="עריכה"
                         data-testid={`edit-supplier-${supplier.id}`}
                       >
-                        <Settings size={18} />
+                        <Settings size={16} />
                       </button>
                       <button
                         onClick={() => handleDelete(supplier.id)}
                         className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="מחיקה"
                         data-testid={`delete-supplier-${supplier.id}`}
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </td>
