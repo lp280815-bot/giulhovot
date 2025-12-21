@@ -190,7 +190,6 @@ const ProcessingTab = () => {
 בהמשך לבדיקתנו, חסרה לנו חשבונית בגין העברה שבוצעה.
 
 ספק: ${row.name}
-חשבון: ${row.account}
 סכום: ${row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪
 תאריך: ${row.date}
 
