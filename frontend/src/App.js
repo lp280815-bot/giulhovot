@@ -1789,12 +1789,38 @@ const EmailSettingsSection = () => {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 mt-6">
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-2">
         <Mail size={24} className="text-[#00CDB8]" />
-        <h3 className="text-lg font-semibold text-gray-800">הגדרות מייל</h3>
+        <h3 className="text-lg font-semibold text-gray-800">הגדרות שליחת מייל</h3>
+      </div>
+      <p className="text-sm text-gray-500 mb-6">כל עובד יכול להגדיר את הפרטים שלו. ההגדרות נשמרות במחשב זה בלבד.</p>
+      
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">📧</span>
+          <div>
+            <h4 className="font-medium text-blue-800">איך זה עובד?</h4>
+            <p className="text-sm text-blue-700 mt-1">
+              כשלוחצים על &quot;שליחת מייל&quot;, נפתח Outlook עם ההודעה מוכנה לשליחה. 
+              רק צריך ללחוץ &quot;שלח&quot; ב-Outlook.
+            </p>
+          </div>
+        </div>
       </div>
       
       <div className="grid md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">שם העובד/ת</label>
+          <input
+            type="text"
+            value={settings.signerName}
+            onChange={(e) => setSettings({...settings, signerName: e.target.value})}
+            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8]"
+            placeholder="השם שלך"
+          />
+          <p className="text-xs text-gray-500 mt-1">השם שיופיע בחתימת המייל</p>
+        </div>
+        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">מייל החברה לקבלת חשבוניות</label>
           <input
@@ -1807,20 +1833,8 @@ const EmailSettingsSection = () => {
           <p className="text-xs text-gray-500 mt-1">המייל שיופיע בהודעה לספק</p>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">שם החותם</label>
-          <input
-            type="text"
-            value={settings.signerName}
-            onChange={(e) => setSettings({...settings, signerName: e.target.value})}
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8]"
-            placeholder="שם מלא"
-          />
-          <p className="text-xs text-gray-500 mt-1">השם שיופיע בחתימת המייל</p>
-        </div>
-        
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">שם החברה בחתימה</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">שם החברה</label>
           <input
             type="text"
             value={settings.companyName}
