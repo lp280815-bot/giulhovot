@@ -249,7 +249,7 @@ ${settings.companyName}`;
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSendResult, setEmailSendResult] = useState(null);
 
-  // Send email via Microsoft Graph API (automatic)
+  // Send email via Microsoft Graph API (automatic) and delete supplier rows after success
   const handleSendEmail = async () => {
     if (!supplierInfo?.email) {
       alert("לא נמצא מייל לספק זה");
@@ -273,7 +273,33 @@ ${settings.companyName}`;
         body: emailText
       });
       
-      setEmailSendResult({ success: true, message: "המייל נשלח בהצלחה!" });
+      // Delete all rows for this supplier after successful email
+      const deletedCount = emailModal.allRows?.length || 1;
+      await axios.post(`${API}/delete-supplier-rows`, {
+        category: "emails",
+        supplier_name: emailModal.name,
+        supplier_account: emailModal.account
+      });
+      
+      // Update local state - remove supplier rows from categoryDetails
+      setCategoryDetails(prev => prev.filter(r => 
+        r.name !== emailModal.name && r.account !== emailModal.account
+      ));
+      
+      // Update stats
+      setStats(prev => ({
+        ...prev,
+        emails: Math.max(0, (prev.emails || 0) - deletedCount)
+      }));
+      
+      setEmailSendResult({ success: true, message: `המייל נשלח בהצלחה! נמחקו ${deletedCount} שורות.` });
+      
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        setEmailModal(null);
+        setEmailSendResult(null);
+      }, 2000);
+      
     } catch (err) {
       setEmailSendResult({ 
         success: false, 
