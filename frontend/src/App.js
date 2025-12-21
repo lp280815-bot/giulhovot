@@ -1575,19 +1575,21 @@ const SettingsTab = () => {
 
 // Email Settings Component
 const EmailSettingsSection = () => {
-  const [settings, setSettings] = useState({
-    companyEmail: "office@ilang.co.il",
-    signerName: "ילנה זמליאנסקי",
-    companyName: "אילן גינון ופיתוח בע\"מ"
-  });
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
+  // Initialize state with localStorage value directly
+  const getInitialSettings = () => {
     const stored = localStorage.getItem("emailSettings");
     if (stored) {
-      setSettings(JSON.parse(stored));
+      return JSON.parse(stored);
     }
-  }, []);
+    return {
+      companyEmail: "office@ilang.co.il",
+      signerName: "ילנה זמליאנסקי",
+      companyName: "אילן גינון ופיתוח בע\"מ"
+    };
+  };
+  
+  const [settings, setSettings] = useState(getInitialSettings);
+  const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
     localStorage.setItem("emailSettings", JSON.stringify(settings));
