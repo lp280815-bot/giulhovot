@@ -910,7 +910,20 @@ async def process_excel(
             email_mapping = build_email_mapping(helper_wb)
         
         # Process workbook
-        wb, stats = process_workbook(wb, email_mapping=email_mapping)
+        wb, stats, details = process_workbook(wb, email_mapping=email_mapping)
+        
+        # Save details to database for later retrieval
+        details_doc = {
+            "id": str(uuid.uuid4()),
+            "filename": main_file.filename or "unknown.xlsx",
+            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "green": [d.model_dump() for d in details.green],
+            "orange": [d.model_dump() for d in details.orange],
+            "purple": [d.model_dump() for d in details.purple],
+            "blue": [d.model_dump() for d in details.blue],
+        }
+        await db.processing_details.delete_many({})  # Keep only latest
+        await db.processing_details.insert_one(details_doc)
         
         # Save processing history
         history = ProcessingHistory(
