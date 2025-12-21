@@ -166,6 +166,31 @@ const ProcessingTab = () => {
   const handleRowAction = async (row, action, rowIndex) => {
     if (!action) return;
     
+    // Special case: "הסר מרשימה" from blue category = delete completely
+    if (action === "special" && expandedCategory === "blue") {
+      setMovingRow(rowIndex);
+      try {
+        await axios.post(`${API}/delete-row`, {
+          from_category: expandedCategory,
+          row_data: row
+        });
+        
+        // Remove row from current view
+        setCategoryDetails(prev => prev.filter((_, idx) => idx !== rowIndex));
+        
+        // Update stats - only decrease blue count, don't add anywhere
+        setStats(prev => ({
+          ...prev,
+          blue: prev.blue - 1
+        }));
+      } catch (err) {
+        console.error("Error deleting row:", err);
+      } finally {
+        setMovingRow(null);
+      }
+      return;
+    }
+    
     let toCategory = null;
     if (action === "special") {
       toCategory = "special";
