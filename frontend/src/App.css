@@ -146,7 +146,7 @@ th, td {
 }
 
 .btn-primary-gradient:hover {
-  background: linear-gradient(135deg, #00B5A3 0%, #009A73 100%);
+  background: linear-gradient(135deg, #00B5A3 0%, #009A8A 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 20px rgba(0, 200, 151, 0.3);
 }
