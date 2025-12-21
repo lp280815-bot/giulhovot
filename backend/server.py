@@ -435,6 +435,9 @@ def process_workbook(wb, email_mapping=None):
                 used_neg.add(ni)
                 purple_counts[pacc] += 1
                 purple_counts[nacc] += 1
+                # Store detailed data
+                details.purple.append(extract_row_data(prow))
+                details.purple.append(extract_row_data(nrow))
                 break
 
     ensure_summary_sheet(wb, "בדיקת ספקים", purple_counts)
@@ -457,6 +460,8 @@ def process_workbook(wb, email_mapping=None):
                 row[col_amt - 1].value,
                 row[col_acc - 1].value,
             ))
+            # Store detailed data
+            details.blue.append(extract_row_data(row))
 
     stats.blue_matches = len(rows_mail)
 
