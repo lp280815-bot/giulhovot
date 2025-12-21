@@ -1367,6 +1367,14 @@ async def send_email_microsoft(request: MicrosoftEmailRequest):
     
     access_token = user.get("access_token")
     
+    # Convert text to HTML with formatting
+    import re
+    html_body = request.body
+    # Convert *** text *** to bold
+    html_body = re.sub(r'\*\*\*(.+?)\*\*\*', r'<strong style="background-color: #FFFF00; padding: 2px 5px;">\1</strong>', html_body)
+    # Convert newlines to <br>
+    html_body = html_body.replace('\n', '<br>')
+    
     # Try to send email
     async with httpx.AsyncClient() as client_http:
         email_data = {
@@ -1374,7 +1382,7 @@ async def send_email_microsoft(request: MicrosoftEmailRequest):
                 "subject": request.subject,
                 "body": {
                     "contentType": "HTML",
-                    "content": request.body.replace('\n', '<br>')
+                    "content": f'<div dir="rtl" style="font-family: Arial, sans-serif;">{html_body}</div>'
                 },
                 "toRecipients": [
                     {"emailAddress": {"address": request.recipient_email}}
