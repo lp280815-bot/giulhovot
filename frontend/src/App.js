@@ -318,52 +318,77 @@ const ProcessingTab = () => {
 
       {/* Results Display with Action Buttons */}
       {stats && processedFileUrl && (
-        <div className="max-w-4xl mx-auto space-y-6" data-testid="stats-display">
+        <div className="max-w-5xl mx-auto space-y-6" data-testid="stats-display">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full mb-4">
               <Check size={20} />
               <span className="font-medium">העיבוד הושלם בהצלחה!</span>
             </div>
             <h3 className="text-xl font-semibold text-gray-800">תוצאות העיבוד</h3>
+            <p className="text-sm text-gray-500 mt-1">לחץ על כפתור לצפייה בפרטים</p>
           </div>
 
           {/* Result Buttons */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {/* Green - 100% Match */}
-            <div className="bg-white rounded-2xl border-2 border-green-500 p-4 text-center hover:shadow-lg transition-shadow">
+            <button
+              onClick={() => handleCategoryClick("green")}
+              className={`bg-white rounded-2xl border-2 p-4 text-center hover:shadow-lg transition-all cursor-pointer ${
+                expandedCategory === "green" ? "border-green-600 shadow-lg ring-2 ring-green-200" : "border-green-500"
+              }`}
+            >
               <div className="w-12 h-12 mx-auto bg-green-500 rounded-full flex items-center justify-center mb-3">
                 <span className="text-white font-bold text-lg">{stats.green}</span>
               </div>
               <h4 className="font-semibold text-gray-800 text-sm">התאמה 100%</h4>
               <p className="text-xs text-green-600 mt-1">(ירוק)</p>
-            </div>
+              <ChevronDown size={16} className={`mx-auto mt-2 text-green-500 transition-transform ${expandedCategory === "green" ? "rotate-180" : ""}`} />
+            </button>
 
             {/* Orange - 80% Match */}
-            <div className="bg-white rounded-2xl border-2 border-orange-500 p-4 text-center hover:shadow-lg transition-shadow">
+            <button
+              onClick={() => handleCategoryClick("orange")}
+              className={`bg-white rounded-2xl border-2 p-4 text-center hover:shadow-lg transition-all cursor-pointer ${
+                expandedCategory === "orange" ? "border-orange-600 shadow-lg ring-2 ring-orange-200" : "border-orange-500"
+              }`}
+            >
               <div className="w-12 h-12 mx-auto bg-orange-500 rounded-full flex items-center justify-center mb-3">
                 <span className="text-white font-bold text-lg">{stats.orange}</span>
               </div>
               <h4 className="font-semibold text-gray-800 text-sm">התאמה 80%</h4>
               <p className="text-xs text-orange-600 mt-1">(כתום)</p>
-            </div>
+              <ChevronDown size={16} className={`mx-auto mt-2 text-orange-500 transition-transform ${expandedCategory === "orange" ? "rotate-180" : ""}`} />
+            </button>
 
             {/* Purple - Supplier Check */}
-            <div className="bg-white rounded-2xl border-2 border-purple-500 p-4 text-center hover:shadow-lg transition-shadow">
+            <button
+              onClick={() => handleCategoryClick("purple")}
+              className={`bg-white rounded-2xl border-2 p-4 text-center hover:shadow-lg transition-all cursor-pointer ${
+                expandedCategory === "purple" ? "border-purple-600 shadow-lg ring-2 ring-purple-200" : "border-purple-500"
+              }`}
+            >
               <div className="w-12 h-12 mx-auto bg-purple-500 rounded-full flex items-center justify-center mb-3">
                 <span className="text-white font-bold text-lg">{stats.purple}</span>
               </div>
               <h4 className="font-semibold text-gray-800 text-sm">בדיקת ספקים</h4>
               <p className="text-xs text-purple-600 mt-1">(סגול)</p>
-            </div>
+              <ChevronDown size={16} className={`mx-auto mt-2 text-purple-500 transition-transform ${expandedCategory === "purple" ? "rotate-180" : ""}`} />
+            </button>
 
             {/* Blue - Bank Transfers */}
-            <div className="bg-white rounded-2xl border-2 border-blue-500 p-4 text-center hover:shadow-lg transition-shadow">
+            <button
+              onClick={() => handleCategoryClick("blue")}
+              className={`bg-white rounded-2xl border-2 p-4 text-center hover:shadow-lg transition-all cursor-pointer ${
+                expandedCategory === "blue" ? "border-blue-600 shadow-lg ring-2 ring-blue-200" : "border-blue-500"
+              }`}
+            >
               <div className="w-12 h-12 mx-auto bg-blue-500 rounded-full flex items-center justify-center mb-3">
                 <span className="text-white font-bold text-lg">{stats.blue}</span>
               </div>
               <h4 className="font-semibold text-gray-800 text-sm">העברות בנקאיות בלי חשבונית</h4>
               <p className="text-xs text-blue-600 mt-1">(כחול)</p>
-            </div>
+              <ChevronDown size={16} className={`mx-auto mt-2 text-blue-500 transition-transform ${expandedCategory === "blue" ? "rotate-180" : ""}`} />
+            </button>
 
             {/* Emails */}
             <div className="bg-white rounded-2xl border-2 border-[#00CDB8] p-4 text-center hover:shadow-lg transition-shadow">
@@ -383,6 +408,58 @@ const ProcessingTab = () => {
               <p className="text-xs text-red-600 mt-1">(ללא התאמה)</p>
             </div>
           </div>
+
+          {/* Expanded Details Table */}
+          {expandedCategory && (
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden animate-fade-in">
+              <div className={`px-4 py-3 font-semibold text-white ${
+                expandedCategory === "green" ? "bg-green-500" :
+                expandedCategory === "orange" ? "bg-orange-500" :
+                expandedCategory === "purple" ? "bg-purple-500" :
+                "bg-blue-500"
+              }`}>
+                {expandedCategory === "green" && "התאמה 100% - פירוט"}
+                {expandedCategory === "orange" && "התאמה 80% - פירוט"}
+                {expandedCategory === "purple" && "בדיקת ספקים - פירוט"}
+                {expandedCategory === "blue" && "העברות בנקאיות בלי חשבונית - פירוט"}
+              </div>
+              
+              {loadingDetails ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 size={32} className="animate-spin text-gray-400" />
+                </div>
+              ) : categoryDetails.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">אין נתונים להצגה</div>
+              ) : (
+                <div className="overflow-x-auto max-h-96">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-600">חשבון</th>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-600">שם</th>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-600">סכום</th>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-600">תאריך</th>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-600">אסמכתא</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {categoryDetails.map((row, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 text-gray-800">{row.account}</td>
+                          <td className="px-4 py-2 text-gray-800">{row.name}</td>
+                          <td className={`px-4 py-2 font-medium ${row.amount >= 0 ? "text-green-600" : "text-red-600"}`}>
+                            {row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })}
+                          </td>
+                          <td className="px-4 py-2 text-gray-600">{row.date}</td>
+                          <td className="px-4 py-2 text-gray-600">{row.doc_number}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Download Button */}
           <div className="flex flex-col items-center gap-4 pt-4">
