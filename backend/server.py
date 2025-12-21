@@ -968,6 +968,19 @@ async def process_excel(
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
 
 
+@api_router.get("/processing-details/{category}")
+async def get_processing_details(category: str):
+    """Get detailed rows for a specific category (green, orange, purple, blue)."""
+    if category not in ["green", "orange", "purple", "blue"]:
+        raise HTTPException(status_code=400, detail="Invalid category")
+    
+    details = await db.processing_details.find_one({}, {"_id": 0})
+    if not details:
+        return {"rows": []}
+    
+    return {"rows": details.get(category, [])}
+
+
 @api_router.post("/preview-excel")
 async def preview_excel(file: UploadFile = File(...)):
     """Preview first few rows of uploaded Excel file."""
