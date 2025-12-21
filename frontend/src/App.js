@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import "@/App.css";
 import axios from "axios";
-import { Upload, FileSpreadsheet, Users, Settings, Zap, Building2, FileText, Download, Trash2, Plus, X, Loader2, ChevronDown, Check, AlertCircle, BarChart3, Mail, RefreshCw } from "lucide-react";
+import { Upload, FileSpreadsheet, Users, Settings, Zap, Building2, FileText, Download, Trash2, Plus, X, Loader2, ChevronDown, Check, AlertCircle, BarChart3, Mail, RefreshCw, Eye, EyeOff, Send } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
