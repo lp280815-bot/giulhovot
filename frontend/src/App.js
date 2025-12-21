@@ -158,16 +158,22 @@ const ProcessingTab = () => {
   const [expandedCategory, setExpandedCategory] = useState(null);
   const [categoryDetails, setCategoryDetails] = useState([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [detailsFilter, setDetailsFilter] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   const handleCategoryClick = async (category) => {
     if (expandedCategory === category) {
       setExpandedCategory(null);
       setCategoryDetails([]);
+      setDetailsFilter("");
+      setSortConfig({ key: null, direction: "asc" });
       return;
     }
     
     setLoadingDetails(true);
     setExpandedCategory(category);
+    setDetailsFilter("");
+    setSortConfig({ key: null, direction: "asc" });
     
     try {
       const response = await axios.get(`${API}/processing-details/${category}`);
@@ -178,6 +184,58 @@ const ProcessingTab = () => {
     } finally {
       setLoadingDetails(false);
     }
+  };
+
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getFilteredAndSortedDetails = () => {
+    let filtered = categoryDetails;
+    
+    // Apply filter
+    if (detailsFilter) {
+      const searchTerm = detailsFilter.toLowerCase();
+      filtered = categoryDetails.filter(row => 
+        row.account?.toLowerCase().includes(searchTerm) ||
+        row.name?.toLowerCase().includes(searchTerm) ||
+        row.date?.includes(searchTerm) ||
+        row.doc_number?.toLowerCase().includes(searchTerm) ||
+        String(row.amount).includes(searchTerm)
+      );
+    }
+    
+    // Apply sort
+    if (sortConfig.key) {
+      filtered = [...filtered].sort((a, b) => {
+        let aVal = a[sortConfig.key];
+        let bVal = b[sortConfig.key];
+        
+        // Handle numeric sorting for amount
+        if (sortConfig.key === "amount") {
+          aVal = parseFloat(aVal) || 0;
+          bVal = parseFloat(bVal) || 0;
+        } else {
+          aVal = String(aVal || "").toLowerCase();
+          bVal = String(bVal || "").toLowerCase();
+        }
+        
+        if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) return "↕";
+    return sortConfig.direction === "asc" ? "↑" : "↓";
   };
 
   const handleProcess = async () => {
