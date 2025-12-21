@@ -264,7 +264,7 @@ const ProcessingTab = () => {
           disabled={!mainFile || isProcessing}
           className={`flex items-center gap-3 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 ${
             mainFile && !isProcessing
-              ? "bg-[#00CDB8] text-white hover:bg-[#00B085] shadow-lg hover:shadow-xl"
+              ? "bg-[#00CDB8] text-white hover:bg-[#00B5A3] shadow-lg hover:shadow-xl"
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
           data-testid="process-btn"
@@ -327,7 +327,7 @@ const ProcessingTab = () => {
             disabled={!n8nClient.trim() || n8nSending}
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
               n8nClient.trim() && !n8nSending
-                ? "bg-[#00CDB8] text-white hover:bg-[#00B085]"
+                ? "bg-[#00CDB8] text-white hover:bg-[#00B5A3]"
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
             data-testid="n8n-trigger-btn"
@@ -425,7 +425,7 @@ const SuppliersTab = () => {
             setEditingSupplier(null);
             setFormData({ account_number: "", name: "", email: "", phone: "" });
           }}
-          className="flex items-center gap-2 bg-[#00CDB8] text-white px-4 py-2 rounded-xl hover:bg-[#00B085] transition-colors"
+          className="flex items-center gap-2 bg-[#00CDB8] text-white px-4 py-2 rounded-xl hover:bg-[#00B5A3] transition-colors"
           data-testid="add-supplier-btn"
         >
           <Plus size={20} />
@@ -491,7 +491,7 @@ const SuppliersTab = () => {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-[#00CDB8] text-white py-3 rounded-xl font-medium hover:bg-[#00B085] transition-colors"
+                  className="flex-1 bg-[#00CDB8] text-white py-3 rounded-xl font-medium hover:bg-[#00B5A3] transition-colors"
                   data-testid="supplier-submit-btn"
                 >
                   {editingSupplier ? "עדכן" : "הוסף"}
