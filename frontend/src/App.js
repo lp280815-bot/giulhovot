@@ -221,15 +221,44 @@ ${settings.companyName}`;
     }
   };
 
-  // Send email (opens default email client)
-  const handleSendEmail = () => {
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSendResult, setEmailSendResult] = useState(null);
+
+  // Send email via SMTP (automatic)
+  const handleSendEmail = async () => {
     if (!supplierInfo?.email) {
       alert("לא נמצא מייל לספק זה");
       return;
     }
-    const subject = encodeURIComponent(emailSubject);
-    const body = encodeURIComponent(emailText);
-    window.open(`mailto:${supplierInfo.email}?subject=${subject}&body=${body}`);
+    
+    const settings = getEmailSettings();
+    if (!settings.senderEmail || !settings.senderPassword) {
+      alert("יש להגדיר קודם את פרטי המייל שלך בלשונית 'כללים'");
+      return;
+    }
+    
+    setSendingEmail(true);
+    setEmailSendResult(null);
+    
+    try {
+      await axios.post(`${API}/send-email`, {
+        sender_email: settings.senderEmail,
+        sender_password: settings.senderPassword,
+        recipient_email: supplierInfo.email,
+        subject: emailSubject,
+        body: emailText,
+        sender_name: settings.signerName
+      });
+      
+      setEmailSendResult({ success: true, message: "המייל נשלח בהצלחה!" });
+    } catch (err) {
+      setEmailSendResult({ 
+        success: false, 
+        message: err.response?.data?.detail || "שגיאה בשליחת המייל"
+      });
+    } finally {
+      setSendingEmail(false);
+    }
   };
 
   // Send WhatsApp
