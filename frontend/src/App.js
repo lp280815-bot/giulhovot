@@ -302,7 +302,7 @@ const ProcessingTab = () => {
           </div>
 
           {/* Result Buttons */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {/* Green - 100% Match */}
             <div className="bg-white rounded-2xl border-2 border-green-500 p-4 text-center hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 mx-auto bg-green-500 rounded-full flex items-center justify-center mb-3">
