@@ -158,21 +158,23 @@ const ProcessingTab = () => {
   const [expandedCategory, setExpandedCategory] = useState(null);
   const [categoryDetails, setCategoryDetails] = useState([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [detailsFilter, setDetailsFilter] = useState("");
+  const [filters, setFilters] = useState({ account: "", name: "" });
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [showAccountFilter, setShowAccountFilter] = useState(false);
+  const [showNameFilter, setShowNameFilter] = useState(false);
 
   const handleCategoryClick = async (category) => {
     if (expandedCategory === category) {
       setExpandedCategory(null);
       setCategoryDetails([]);
-      setDetailsFilter("");
+      setFilters({ account: "", name: "" });
       setSortConfig({ key: null, direction: "asc" });
       return;
     }
     
     setLoadingDetails(true);
     setExpandedCategory(category);
-    setDetailsFilter("");
+    setFilters({ account: "", name: "" });
     setSortConfig({ key: null, direction: "asc" });
     
     try {
@@ -194,19 +196,26 @@ const ProcessingTab = () => {
     setSortConfig({ key, direction });
   };
 
+  // Get unique values for filters
+  const getUniqueAccounts = () => {
+    const accounts = [...new Set(categoryDetails.map(row => row.account))].filter(Boolean);
+    return accounts.sort();
+  };
+
+  const getUniqueNames = () => {
+    const names = [...new Set(categoryDetails.map(row => row.name))].filter(Boolean);
+    return names.sort();
+  };
+
   const getFilteredAndSortedDetails = () => {
     let filtered = categoryDetails;
     
-    // Apply filter
-    if (detailsFilter) {
-      const searchTerm = detailsFilter.toLowerCase();
-      filtered = categoryDetails.filter(row => 
-        row.account?.toLowerCase().includes(searchTerm) ||
-        row.name?.toLowerCase().includes(searchTerm) ||
-        row.date?.includes(searchTerm) ||
-        row.doc_number?.toLowerCase().includes(searchTerm) ||
-        String(row.amount).includes(searchTerm)
-      );
+    // Apply filters
+    if (filters.account) {
+      filtered = filtered.filter(row => row.account === filters.account);
+    }
+    if (filters.name) {
+      filtered = filtered.filter(row => row.name === filters.name);
     }
     
     // Apply sort
