@@ -174,6 +174,8 @@ const ProcessingTab = () => {
     } else if (action === "match") {
       // התאמה - לא עושים כלום, רק מסמנים
       return;
+    } else if (action === "emails") {
+      toCategory = "emails";
     }
     
     if (!toCategory) return;
@@ -200,10 +202,12 @@ const ProcessingTab = () => {
         else if (expandedCategory === "blue") newStats.blue--;
         else if (expandedCategory === "special") newStats.special--;
         else if (expandedCategory === "command") newStats.command--;
+        else if (expandedCategory === "emails") newStats.emails--;
         
         // Increase target count
         if (toCategory === "special") newStats.special++;
         else if (toCategory === "command") newStats.command = (newStats.command || 0) + 1;
+        else if (toCategory === "emails") newStats.emails++;
         
         return newStats;
       });
