@@ -664,6 +664,9 @@ const ProcessingTab = () => {
                           >
                             חשבונית {getSortIcon("invoice")}
                           </th>
+                          <th className="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">
+                            פעולה
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -677,6 +680,28 @@ const ProcessingTab = () => {
                             <td className="px-4 py-2 text-gray-600">{row.date}</td>
                             <td className="px-4 py-2 text-gray-600">{row.details}</td>
                             <td className="px-4 py-2 text-gray-600">{row.invoice}</td>
+                            <td className="px-4 py-2">
+                              <select
+                                className="px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8] bg-white"
+                                onChange={(e) => {
+                                  const originalIndex = categoryDetails.findIndex(r => 
+                                    r.account === row.account && 
+                                    r.name === row.name && 
+                                    Math.abs(r.amount - row.amount) < 0.01 &&
+                                    r.date === row.date
+                                  );
+                                  handleRowAction(row, e.target.value, originalIndex);
+                                  e.target.value = "";
+                                }}
+                                disabled={movingRow !== null}
+                                defaultValue=""
+                              >
+                                <option value="" disabled>בחר פעולה</option>
+                                <option value="match">התאמה ✓</option>
+                                <option value="special">הסר מרשימה</option>
+                                <option value="command">לעשות פקודה</option>
+                              </select>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
