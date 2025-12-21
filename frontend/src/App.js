@@ -986,6 +986,13 @@ ${settings.companyName}`;
                                   onChange={(e) => {
                                     if (e.target.value === "send_email") {
                                       openEmailModal(group.rows[0]);
+                                    } else if (e.target.value) {
+                                      // Handle other actions for first row of group
+                                      const originalIndex = categoryDetails.findIndex(r => 
+                                        r.account === group.rows[0].account && 
+                                        r.name === group.rows[0].name
+                                      );
+                                      handleRowAction(group.rows[0], e.target.value, originalIndex);
                                     }
                                     e.target.value = "";
                                   }}
@@ -993,6 +1000,9 @@ ${settings.companyName}`;
                                 >
                                   <option value="" disabled>בחר פעולה</option>
                                   <option value="send_email">שלח מייל 📧</option>
+                                  <option value="match">התאמה ✓</option>
+                                  <option value="special">הסר מרשימה</option>
+                                  <option value="command">לעשות פקודה</option>
                                 </select>
                               </td>
                             </tr>
