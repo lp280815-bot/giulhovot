@@ -500,6 +500,25 @@ ${settings.companyName}`;
     return amounts.sort((a, b) => a - b);
   };
 
+  // Group rows by supplier for emails category
+  const getGroupedBySupplier = () => {
+    const grouped = {};
+    categoryDetails.forEach(row => {
+      const key = row.name || row.account;
+      if (!grouped[key]) {
+        grouped[key] = {
+          name: row.name,
+          account: row.account,
+          rows: [],
+          totalAmount: 0
+        };
+      }
+      grouped[key].rows.push(row);
+      grouped[key].totalAmount += row.amount || 0;
+    });
+    return Object.values(grouped);
+  };
+
   const getFilteredAndSortedDetails = () => {
     let filtered = categoryDetails;
     
