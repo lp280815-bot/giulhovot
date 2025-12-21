@@ -1116,6 +1116,49 @@ async def delete_row(request: DeleteRowRequest):
     return {"success": True, "message": f"Row deleted from {request.from_category}"}
 
 
+class DeleteSupplierRowsRequest(BaseModel):
+    category: str
+    supplier_name: str
+    supplier_account: str
+
+
+@api_router.post("/delete-supplier-rows")
+async def delete_supplier_rows(request: DeleteSupplierRowsRequest):
+    """Delete all rows for a specific supplier from a category."""
+    valid_categories = ["green", "orange", "purple", "blue", "special", "command", "emails"]
+    if request.category not in valid_categories:
+        raise HTTPException(status_code=400, detail="Invalid category")
+    
+    details = await db.processing_details.find_one({}, {"_id": 0})
+    if not details:
+        raise HTTPException(status_code=404, detail="No processing data found")
+    
+    # Get source list
+    source_list = details.get(request.category, [])
+    
+    # Count rows before deletion
+    original_count = len(source_list)
+    
+    # Filter out all rows matching the supplier
+    source_list = [row for row in source_list if not (
+        row.get("name") == request.supplier_name or 
+        row.get("account") == request.supplier_account
+    )]
+    
+    deleted_count = original_count - len(source_list)
+    
+    if deleted_count == 0:
+        raise HTTPException(status_code=404, detail="No rows found for this supplier")
+    
+    # Update database
+    await db.processing_details.update_one(
+        {},
+        {"$set": {request.category: source_list}}
+    )
+    
+    return {"success": True, "deleted_count": deleted_count, "message": f"Deleted {deleted_count} rows for supplier"}
+
+
 @api_router.post("/send-email")
 async def send_email(request: SendEmailRequest):
     """Send email via SMTP (Outlook/Office 365)."""
