@@ -981,12 +981,19 @@ ${settings.companyName}`;
                                 </span>
                               </td>
                               <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                  onClick={() => openEmailModal(group.rows[0])}
-                                  className="px-3 py-1 bg-[#00CDB8] text-white rounded-lg text-sm font-medium hover:bg-[#00B5A3] transition-colors"
+                                <select
+                                  className="px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8] bg-white"
+                                  onChange={(e) => {
+                                    if (e.target.value === "send_email") {
+                                      openEmailModal(group.rows[0]);
+                                    }
+                                    e.target.value = "";
+                                  }}
+                                  defaultValue=""
                                 >
-                                  שלח מייל
-                                </button>
+                                  <option value="" disabled>בחר פעולה</option>
+                                  <option value="send_email">שלח מייל 📧</option>
+                                </select>
                               </td>
                             </tr>
                           ))
