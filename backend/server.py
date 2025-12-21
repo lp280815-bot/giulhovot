@@ -1414,7 +1414,7 @@ async def send_email_microsoft(request: MicrosoftEmailRequest):
     import re
     html_body = request.body
     # Convert *** text *** to bold
-    html_body = re.sub(r'\*\*\*(.+?)\*\*\*', r'<strong style="background-color: #FFFF00; padding: 2px 5px;">\1</strong>', html_body)
+    html_body = re.sub(r'\*\*\*(.+?)\*\*\*', r'<strong style="color: #00CDB8; font-weight: bold; font-size: 16px;">\1</strong>', html_body)
     # Convert newlines to <br>
     html_body = html_body.replace('\n', '<br>')
     
