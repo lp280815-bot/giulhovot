@@ -205,6 +205,12 @@ const ProcessingTab = () => {
     return names.sort();
   };
 
+  const getUniqueAmounts = () => {
+    // Get unique absolute values of amounts
+    const amounts = [...new Set(categoryDetails.map(row => Math.abs(row.amount)))].filter(v => v > 0);
+    return amounts.sort((a, b) => a - b);
+  };
+
   const getFilteredAndSortedDetails = () => {
     let filtered = categoryDetails;
     
@@ -214,6 +220,10 @@ const ProcessingTab = () => {
     }
     if (filters.name) {
       filtered = filtered.filter(row => row.name === filters.name);
+    }
+    if (filters.amount) {
+      const filterAmount = parseFloat(filters.amount);
+      filtered = filtered.filter(row => Math.abs(row.amount) === filterAmount);
     }
     
     // Apply sort
