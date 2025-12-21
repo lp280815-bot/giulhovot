@@ -1084,7 +1084,7 @@ app.add_middleware(
     allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["X-Stats-Green", "X-Stats-Orange", "X-Stats-Purple", "X-Stats-Blue", "X-Stats-Total", "X-Stats-Emails", "Content-Disposition"]
+    expose_headers=["X-Stats-Green", "X-Stats-Orange", "X-Stats-Purple", "X-Stats-Blue", "X-Stats-Total", "X-Stats-Emails", "X-Stats-Special", "X-Stats-Command", "Content-Disposition"]
 )
 
 
