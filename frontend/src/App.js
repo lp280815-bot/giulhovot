@@ -347,6 +347,15 @@ const ProcessingTab = () => {
               <h4 className="font-semibold text-gray-800 text-sm">מיילים לספק</h4>
               <p className="text-xs text-[#00CDB8] mt-1">(נוצרו)</p>
             </div>
+
+            {/* Special Treatment - Red */}
+            <div className="bg-white rounded-2xl border-2 border-red-500 p-4 text-center hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 mx-auto bg-red-500 rounded-full flex items-center justify-center mb-3">
+                <span className="text-white font-bold text-lg">{stats.special}</span>
+              </div>
+              <h4 className="font-semibold text-gray-800 text-sm">לטיפול מיוחד</h4>
+              <p className="text-xs text-red-600 mt-1">(ללא התאמה)</p>
+            </div>
           </div>
 
           {/* Download Button */}
