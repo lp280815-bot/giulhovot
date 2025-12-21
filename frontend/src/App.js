@@ -160,6 +160,59 @@ const ProcessingTab = () => {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [filters, setFilters] = useState({ account: "", name: "", amount: "" });
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [movingRow, setMovingRow] = useState(null);
+
+  // Handle row action (move to different category)
+  const handleRowAction = async (row, action, rowIndex) => {
+    if (!action) return;
+    
+    let toCategory = null;
+    if (action === "special") {
+      toCategory = "special";
+    } else if (action === "command") {
+      toCategory = "command";
+    } else if (action === "match") {
+      // התאמה - לא עושים כלום, רק מסמנים
+      return;
+    }
+    
+    if (!toCategory) return;
+    
+    setMovingRow(rowIndex);
+    try {
+      await axios.post(`${API}/move-row`, {
+        row_index: rowIndex,
+        from_category: expandedCategory,
+        to_category: toCategory,
+        row_data: row
+      });
+      
+      // Remove row from current view
+      setCategoryDetails(prev => prev.filter((_, idx) => idx !== rowIndex));
+      
+      // Update stats
+      setStats(prev => {
+        const newStats = { ...prev };
+        // Decrease source count
+        if (expandedCategory === "green") newStats.green--;
+        else if (expandedCategory === "orange") newStats.orange--;
+        else if (expandedCategory === "purple") newStats.purple--;
+        else if (expandedCategory === "blue") newStats.blue--;
+        else if (expandedCategory === "special") newStats.special--;
+        else if (expandedCategory === "command") newStats.command--;
+        
+        // Increase target count
+        if (toCategory === "special") newStats.special++;
+        else if (toCategory === "command") newStats.command = (newStats.command || 0) + 1;
+        
+        return newStats;
+      });
+    } catch (err) {
+      console.error("Error moving row:", err);
+    } finally {
+      setMovingRow(null);
+    }
+  };
 
   const handleCategoryClick = async (category) => {
     if (expandedCategory === category) {
