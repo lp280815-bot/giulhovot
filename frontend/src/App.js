@@ -1774,12 +1774,17 @@ const EmailSettingsSection = () => {
     return {
       companyEmail: "office@ilang.co.il",
       signerName: "ילנה זמליאנסקי",
-      companyName: "אילן גינון ופיתוח בע\"מ"
+      companyName: "אילן גינון ופיתוח בע\"מ",
+      senderEmail: "",
+      senderPassword: ""
     };
   };
   
   const [settings, setSettings] = useState(getInitialSettings);
   const [saved, setSaved] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
 
   const handleSave = () => {
     localStorage.setItem("emailSettings", JSON.stringify(settings));
@@ -1787,28 +1792,99 @@ const EmailSettingsSection = () => {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handleTestEmail = async () => {
+    if (!settings.senderEmail || !settings.senderPassword) {
+      setTestResult({ success: false, message: "יש להזין מייל וסיסמת אפליקציה" });
+      return;
+    }
+    
+    setTesting(true);
+    setTestResult(null);
+    
+    try {
+      const response = await axios.post(`${API}/send-email`, {
+        sender_email: settings.senderEmail,
+        sender_password: settings.senderPassword,
+        recipient_email: settings.senderEmail,
+        subject: "בדיקת הגדרות מייל - אילן גינון",
+        body: `שלום,\n\nזוהי הודעת בדיקה מהמערכת.\nאם קיבלת הודעה זו, ההגדרות תקינות!\n\nבברכה,\n${settings.signerName}`,
+        sender_name: settings.signerName
+      });
+      
+      setTestResult({ success: true, message: "המייל נשלח בהצלחה! בדקי את תיבת הדואר שלך" });
+    } catch (err) {
+      setTestResult({ 
+        success: false, 
+        message: err.response?.data?.detail || "שגיאה בשליחת המייל"
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 mt-6">
       <div className="flex items-center gap-3 mb-2">
         <Mail size={24} className="text-[#00CDB8]" />
-        <h3 className="text-lg font-semibold text-gray-800">הגדרות שליחת מייל</h3>
+        <h3 className="text-lg font-semibold text-gray-800">הגדרות שליחת מייל אוטומטית</h3>
       </div>
-      <p className="text-sm text-gray-500 mb-6">כל עובד יכול להגדיר את הפרטים שלו. ההגדרות נשמרות במחשב זה בלבד.</p>
+      <p className="text-sm text-gray-500 mb-6">כל עובד מגדיר את המייל שלו לשליחה אוטומטית ישירות מהאפליקציה.</p>
       
+      {/* Instructions */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
         <div className="flex items-start gap-3">
-          <span className="text-2xl">📧</span>
+          <span className="text-2xl">🔐</span>
           <div>
-            <h4 className="font-medium text-blue-800">איך זה עובד?</h4>
-            <p className="text-sm text-blue-700 mt-1">
-              כשלוחצים על &quot;שליחת מייל&quot;, נפתח Outlook עם ההודעה מוכנה לשליחה. 
-              רק צריך ללחוץ &quot;שלח&quot; ב-Outlook.
-            </p>
+            <h4 className="font-medium text-blue-800">איך מקבלים סיסמת אפליקציה?</h4>
+            <ol className="text-sm text-blue-700 mt-2 space-y-1 list-decimal list-inside">
+              <li>היכנסי ל-<a href="https://account.microsoft.com/security" target="_blank" rel="noopener noreferrer" className="underline font-medium">account.microsoft.com/security</a></li>
+              <li>לחצי על &quot;Advanced security options&quot;</li>
+              <li>גללי למטה ולחצי על &quot;Create a new app password&quot;</li>
+              <li>העתיקי את הסיסמה שנוצרה והדביקי כאן</li>
+            </ol>
           </div>
         </div>
       </div>
       
       <div className="grid md:grid-cols-2 gap-6">
+        {/* Sender Email Settings */}
+        <div className="md:col-span-2 bg-gray-50 rounded-xl p-4">
+          <h4 className="font-medium text-gray-800 mb-4 flex items-center gap-2">
+            <span>📧</span> הגדרות שליחה (Outlook)
+          </h4>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">כתובת המייל שלך (Outlook)</label>
+              <input
+                type="email"
+                value={settings.senderEmail}
+                onChange={(e) => setSettings({...settings, senderEmail: e.target.value})}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8]"
+                placeholder="your.email@company.com"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">סיסמת אפליקציה</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={settings.senderPassword}
+                  onChange={(e) => setSettings({...settings, senderPassword: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8] pr-10"
+                  placeholder="הסיסמה מ-Microsoft"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">שם העובד/ת</label>
           <input
@@ -1845,12 +1921,28 @@ const EmailSettingsSection = () => {
         </div>
       </div>
       
+      {/* Test Result */}
+      {testResult && (
+        <div className={`mt-4 p-3 rounded-lg flex items-center gap-2 ${testResult.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          {testResult.success ? <Check size={18} /> : <AlertCircle size={18} />}
+          <span className="text-sm">{testResult.message}</span>
+        </div>
+      )}
+      
       <div className="mt-6 flex items-center gap-4">
         <button
           onClick={handleSave}
           className="px-6 py-2 bg-[#00CDB8] text-white rounded-lg font-medium hover:bg-[#00B5A3] transition-colors"
         >
           שמור הגדרות
+        </button>
+        <button
+          onClick={handleTestEmail}
+          disabled={testing || !settings.senderEmail || !settings.senderPassword}
+          className="px-6 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          {testing ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+          {testing ? "שולח..." : "שלח מייל בדיקה"}
         </button>
         {saved && (
           <span className="text-green-600 text-sm flex items-center gap-1">
