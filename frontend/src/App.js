@@ -221,7 +221,8 @@ const ProcessingTab = () => {
 פירוט ההעברות:
 ${transfersList}
 נבקש לקבל את ה${invoiceText} בהקדם האפשרי לצורך השלמת הרישומים.
-אשמח לקבל ${invoiceText} במייל: ${settings.companyEmail}
+
+*** אשמח לקבל ${invoiceText} במייל: ${settings.companyEmail} ***
 
 בברכה,
 ${settings.signerName}
