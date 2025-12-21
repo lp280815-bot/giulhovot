@@ -200,7 +200,18 @@ const ProcessingTab = () => {
 
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.detail || "שגיאה בעיבוד הקובץ");
+      // Handle error response that might be a blob
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          setError(json.detail || "שגיאה בעיבוד הקובץ");
+        } catch {
+          setError("שגיאה בעיבוד הקובץ");
+        }
+      } else {
+        setError(err.response?.data?.detail || "שגיאה בעיבוד הקובץ");
+      }
     } finally {
       setIsProcessing(false);
     }
