@@ -874,18 +874,6 @@ const SettingsTab = () => {
           </p>
         </div>
       </div>
-
-      {/* N8N Integration Info */}
-      <div className="bg-gradient-to-r from-[#00CDB8]/10 to-[#00CDB8]/5 rounded-2xl p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-          <Zap size={20} className="text-[#00CDB8]" />
-          אינטגרציה עם N8N
-        </h3>
-        <p className="text-gray-600 text-sm leading-relaxed">
-          המערכת מחוברת ל-N8N לאוטומציות מתקדמות. ניתן לשלוח טריגרים ישירות מהמערכת
-          לזרימות עבודה אוטומטיות, כולל שליחת מיילים, עדכון Google Sheets, ועוד.
-        </p>
-      </div>
     </div>
   );
 };
