@@ -616,7 +616,7 @@ const SettingsTab = () => {
             <h3 className="text-lg font-semibold text-gray-800">העברות בנקאיות (כחול)</h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            מזהה תנועות מסוג "העב" (העברה בנקאית) ויוצר אוטומטית
+            מזהה תנועות מסוג &quot;העב&quot; (העברה בנקאית) ויוצר אוטומטית
             טקסט מייל לספק עם פרטי החשבוניות החסרות.
           </p>
         </div>
