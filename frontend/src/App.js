@@ -1143,19 +1143,27 @@ ${settings.companyName}`;
                     />
                   </div>
 
+                  {/* Email Send Result */}
+                  {emailSendResult && (
+                    <div className={`p-3 rounded-lg flex items-center gap-2 ${emailSendResult.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                      {emailSendResult.success ? <Check size={18} /> : <AlertCircle size={18} />}
+                      <span className="text-sm">{emailSendResult.message}</span>
+                    </div>
+                  )}
+
                   {/* Action Buttons */}
                   <div className="flex gap-4">
                     <button
                       onClick={handleSendEmail}
-                      disabled={!supplierInfo?.email}
+                      disabled={!supplierInfo?.email || sendingEmail}
                       className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
-                        supplierInfo?.email 
+                        supplierInfo?.email && !sendingEmail
                           ? "bg-blue-500 text-white hover:bg-blue-600" 
                           : "bg-gray-200 text-gray-400 cursor-not-allowed"
                       }`}
                     >
-                      <Mail size={20} />
-                      <span>שליחת מייל</span>
+                      {sendingEmail ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+                      <span>{sendingEmail ? "שולח..." : "שליחת מייל"}</span>
                     </button>
                     <button
                       onClick={handleSendWhatsApp}
