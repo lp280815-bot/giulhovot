@@ -60,7 +60,7 @@ const Header = ({ activeTab, setActiveTab }) => {
               <span>לקוח:</span>
               <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
                 <Settings size={16} className="text-gray-400" />
-                <span>החברה המרכזית למימוש</span>
+                <span>אילן גינון ופיתוח בע"מ</span>
                 <ChevronDown size={16} className="text-gray-400" />
               </div>
             </div>
