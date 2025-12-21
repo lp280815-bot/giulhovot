@@ -6,6 +6,7 @@ from pathlib import Path
 from collections import defaultdict
 from datetime import datetime, timezone
 from typing import List, Optional
+from urllib.parse import quote
 
 import openpyxl
 from openpyxl.styles import PatternFill, Alignment
