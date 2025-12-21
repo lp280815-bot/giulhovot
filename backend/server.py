@@ -1038,6 +1038,48 @@ async def move_row(request: MoveRowRequest):
     return {"success": True, "message": f"Row moved from {request.from_category} to {request.to_category}"}
 
 
+class DeleteRowRequest(BaseModel):
+    from_category: str
+    row_data: dict
+
+
+@api_router.post("/delete-row")
+async def delete_row(request: DeleteRowRequest):
+    """Delete a row from a category (remove completely without moving)."""
+    valid_categories = ["green", "orange", "purple", "blue", "special", "command", "emails"]
+    if request.from_category not in valid_categories:
+        raise HTTPException(status_code=400, detail="Invalid category")
+    
+    details = await db.processing_details.find_one({}, {"_id": 0})
+    if not details:
+        raise HTTPException(status_code=404, detail="No processing data found")
+    
+    # Get source list
+    source_list = details.get(request.from_category, [])
+    
+    # Find and remove from source by matching row data
+    row_found = False
+    for i, row in enumerate(source_list):
+        if (row.get("account") == request.row_data.get("account") and 
+            row.get("name") == request.row_data.get("name") and
+            abs(row.get("amount", 0) - request.row_data.get("amount", 0)) < 0.01 and
+            row.get("date") == request.row_data.get("date")):
+            source_list.pop(i)
+            row_found = True
+            break
+    
+    if not row_found:
+        raise HTTPException(status_code=404, detail="Row not found in category")
+    
+    # Update database
+    await db.processing_details.update_one(
+        {},
+        {"$set": {request.from_category: source_list}}
+    )
+    
+    return {"success": True, "message": f"Row deleted from {request.from_category}"}
+
+
 @api_router.post("/preview-excel")
 async def preview_excel(file: UploadFile = File(...)):
     """Preview first few rows of uploaded Excel file."""
