@@ -130,6 +130,19 @@ class ProcessingStats(BaseModel):
     total_rows: int = 0
     emails_generated: int = 0
 
+class DetailedRow(BaseModel):
+    account: str = ""
+    name: str = ""
+    amount: float = 0
+    date: str = ""
+    doc_number: str = ""
+
+class ProcessingDetails(BaseModel):
+    green: List[DetailedRow] = []
+    orange: List[DetailedRow] = []
+    purple: List[DetailedRow] = []
+    blue: List[DetailedRow] = []
+
 
 # ========= Helper Functions =========
 def parse_amount(val):
