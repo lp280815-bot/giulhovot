@@ -512,6 +512,16 @@ def process_workbook(wb, email_mapping=None):
             except Exception:
                 amount = debt
             lines.append(f"תאריך - {date_str}\nעל סכום - {amount}")
+            
+            # Add to emails details
+            details.emails.append(DetailedRow(
+                account=str(acc) if acc else "",
+                name=str(name) if name else "",
+                amount=float(amount) if isinstance(amount, (int, float)) else 0,
+                date=date_str,
+                details="",
+                invoice=""
+            ))
 
         combined_details = "\n".join(lines)
 
