@@ -155,6 +155,30 @@ const ProcessingTab = () => {
   const [error, setError] = useState(null);
   const [processedFileUrl, setProcessedFileUrl] = useState(null);
   const [processedFileName, setProcessedFileName] = useState("");
+  const [expandedCategory, setExpandedCategory] = useState(null);
+  const [categoryDetails, setCategoryDetails] = useState([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
+  const handleCategoryClick = async (category) => {
+    if (expandedCategory === category) {
+      setExpandedCategory(null);
+      setCategoryDetails([]);
+      return;
+    }
+    
+    setLoadingDetails(true);
+    setExpandedCategory(category);
+    
+    try {
+      const response = await axios.get(`${API}/processing-details/${category}`);
+      setCategoryDetails(response.data.rows || []);
+    } catch (err) {
+      console.error(err);
+      setCategoryDetails([]);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
 
   const handleProcess = async () => {
     if (!mainFile) return;
@@ -163,6 +187,8 @@ const ProcessingTab = () => {
     setError(null);
     setStats(null);
     setProcessedFileUrl(null);
+    setExpandedCategory(null);
+    setCategoryDetails([]);
 
     try {
       const formData = new FormData();
