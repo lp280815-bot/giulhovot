@@ -135,7 +135,8 @@ class DetailedRow(BaseModel):
     name: str = ""
     amount: float = 0
     date: str = ""
-    doc_number: str = ""
+    details: str = ""
+    invoice: str = ""
 
 class ProcessingDetails(BaseModel):
     green: List[DetailedRow] = []
