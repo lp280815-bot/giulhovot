@@ -153,6 +153,8 @@ const ProcessingTab = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
+  const [processedFileUrl, setProcessedFileUrl] = useState(null);
+  const [processedFileName, setProcessedFileName] = useState("");
 
   const handleProcess = async () => {
     if (!mainFile) return;
@@ -160,6 +162,7 @@ const ProcessingTab = () => {
     setIsProcessing(true);
     setError(null);
     setStats(null);
+    setProcessedFileUrl(null);
 
     try {
       const formData = new FormData();
@@ -181,15 +184,10 @@ const ProcessingTab = () => {
       };
       setStats(newStats);
 
-      // Download file
+      // Store file for download
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `processed_${mainFile.name}`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      setProcessedFileUrl(url);
+      setProcessedFileName(`מעובד_${mainFile.name}`);
 
     } catch (err) {
       console.error(err);
@@ -208,6 +206,24 @@ const ProcessingTab = () => {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleDownload = () => {
+    if (!processedFileUrl) return;
+    const link = document.createElement("a");
+    link.href = processedFileUrl;
+    link.setAttribute("download", processedFileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const handleReset = () => {
+    setMainFile(null);
+    setStats(null);
+    setProcessedFileUrl(null);
+    setProcessedFileName("");
+    setError(null);
   };
 
   return (
