@@ -891,7 +891,7 @@ ${row.details ? `פרטים: ${row.details}` : ""}
                         </div>
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-sm">לא נמצאו פרטי ספק. יש להוסיף את הספק בלשונית "ספקים".</p>
+                      <p className="text-gray-500 text-sm">לא נמצאו פרטי ספק. יש להוסיף את הספק בלשונית ספקים.</p>
                     )}
                   </div>
 
