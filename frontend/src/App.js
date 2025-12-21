@@ -578,6 +578,7 @@ const ProcessingTab = () => {
                 expandedCategory === "purple" ? "bg-purple-500" :
                 expandedCategory === "blue" ? "bg-blue-500" :
                 expandedCategory === "special" ? "bg-red-500" :
+                expandedCategory === "emails" ? "bg-[#00CDB8]" :
                 "bg-yellow-500"
               }`}>
                 <span>
@@ -587,6 +588,7 @@ const ProcessingTab = () => {
                   {expandedCategory === "blue" && "העברות בנקאיות בלי חשבונית - פירוט"}
                   {expandedCategory === "special" && "לטיפול מיוחד/תשלום - פירוט"}
                   {expandedCategory === "command" && "לעשות פקודה - פירוט"}
+                  {expandedCategory === "emails" && "מיילים לספק - פירוט"}
                 </span>
                 <span className="text-sm opacity-80">
                   {getFilteredAndSortedDetails().length} שורות
