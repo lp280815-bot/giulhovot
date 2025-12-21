@@ -224,7 +224,7 @@ ${settings.companyName}`;
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSendResult, setEmailSendResult] = useState(null);
 
-  // Send email via SMTP (automatic)
+  // Send email via Microsoft Graph API (automatic)
   const handleSendEmail = async () => {
     if (!supplierInfo?.email) {
       alert("לא נמצא מייל לספק זה");
@@ -232,8 +232,8 @@ ${settings.companyName}`;
     }
     
     const settings = getEmailSettings();
-    if (!settings.senderEmail || !settings.senderPassword) {
-      alert("יש להגדיר קודם את פרטי המייל שלך בלשונית 'כללים'");
+    if (!settings.microsoftEmail) {
+      alert("יש להתחבר ל-Microsoft קודם בלשונית 'כללים'");
       return;
     }
     
@@ -241,13 +241,11 @@ ${settings.companyName}`;
     setEmailSendResult(null);
     
     try {
-      await axios.post(`${API}/send-email`, {
-        sender_email: settings.senderEmail,
-        sender_password: settings.senderPassword,
+      await axios.post(`${API}/send-email-microsoft`, {
+        sender_email: settings.microsoftEmail,
         recipient_email: supplierInfo.email,
         subject: emailSubject,
-        body: emailText,
-        sender_name: settings.signerName
+        body: emailText
       });
       
       setEmailSendResult({ success: true, message: "המייל נשלח בהצלחה!" });
