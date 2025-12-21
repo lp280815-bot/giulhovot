@@ -523,14 +523,20 @@ const ProcessingTab = () => {
               <ChevronDown size={16} className={`mx-auto mt-2 text-blue-500 transition-transform ${expandedCategory === "blue" ? "rotate-180" : ""}`} />
             </button>
 
-            {/* Emails */}
-            <div className="bg-white rounded-2xl border-2 border-[#00CDB8] p-4 text-center hover:shadow-lg transition-shadow">
+            {/* Emails - Turquoise */}
+            <button
+              onClick={() => handleCategoryClick("emails")}
+              className={`bg-white rounded-2xl border-2 p-4 text-center hover:shadow-lg transition-all cursor-pointer ${
+                expandedCategory === "emails" ? "border-[#00CDB8] shadow-lg ring-2 ring-[#00CDB8]/30" : "border-[#00CDB8]"
+              }`}
+            >
               <div className="w-12 h-12 mx-auto bg-[#00CDB8] rounded-full flex items-center justify-center mb-3">
                 <span className="text-white font-bold text-lg">{stats.emails}</span>
               </div>
               <h4 className="font-semibold text-gray-800 text-sm">מיילים לספק</h4>
-              <p className="text-xs text-[#00CDB8] mt-1">(נוצרו)</p>
-            </div>
+              <p className="text-xs text-[#00CDB8] mt-1">(חסרה חשבונית)</p>
+              <ChevronDown size={16} className={`mx-auto mt-2 text-[#00CDB8] transition-transform ${expandedCategory === "emails" ? "rotate-180" : ""}`} />
+            </button>
 
             {/* Special Treatment - Red */}
             <button
