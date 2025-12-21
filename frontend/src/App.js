@@ -529,13 +529,34 @@ const ProcessingTab = () => {
             </div>
 
             {/* Special Treatment - Red */}
-            <div className="bg-white rounded-2xl border-2 border-red-500 p-4 text-center hover:shadow-lg transition-shadow">
+            <button
+              onClick={() => handleCategoryClick("special")}
+              className={`bg-white rounded-2xl border-2 p-4 text-center hover:shadow-lg transition-all cursor-pointer ${
+                expandedCategory === "special" ? "border-red-600 shadow-lg ring-2 ring-red-200" : "border-red-500"
+              }`}
+            >
               <div className="w-12 h-12 mx-auto bg-red-500 rounded-full flex items-center justify-center mb-3">
                 <span className="text-white font-bold text-lg">{stats.special}</span>
               </div>
               <h4 className="font-semibold text-gray-800 text-sm">לטיפול מיוחד/תשלום</h4>
               <p className="text-xs text-red-600 mt-1">(ללא התאמה)</p>
-            </div>
+              <ChevronDown size={16} className={`mx-auto mt-2 text-red-500 transition-transform ${expandedCategory === "special" ? "rotate-180" : ""}`} />
+            </button>
+
+            {/* Command - Yellow */}
+            <button
+              onClick={() => handleCategoryClick("command")}
+              className={`bg-white rounded-2xl border-2 p-4 text-center hover:shadow-lg transition-all cursor-pointer ${
+                expandedCategory === "command" ? "border-yellow-600 shadow-lg ring-2 ring-yellow-200" : "border-yellow-500"
+              }`}
+            >
+              <div className="w-12 h-12 mx-auto bg-yellow-500 rounded-full flex items-center justify-center mb-3">
+                <span className="text-white font-bold text-lg">{stats.command || 0}</span>
+              </div>
+              <h4 className="font-semibold text-gray-800 text-sm">לעשות פקודה</h4>
+              <p className="text-xs text-yellow-600 mt-1">(צהוב)</p>
+              <ChevronDown size={16} className={`mx-auto mt-2 text-yellow-500 transition-transform ${expandedCategory === "command" ? "rotate-180" : ""}`} />
+            </button>
           </div>
 
           {/* Expanded Details Table */}
@@ -545,13 +566,17 @@ const ProcessingTab = () => {
                 expandedCategory === "green" ? "bg-green-500" :
                 expandedCategory === "orange" ? "bg-orange-500" :
                 expandedCategory === "purple" ? "bg-purple-500" :
-                "bg-blue-500"
+                expandedCategory === "blue" ? "bg-blue-500" :
+                expandedCategory === "special" ? "bg-red-500" :
+                "bg-yellow-500"
               }`}>
                 <span>
                   {expandedCategory === "green" && "התאמה 100% - פירוט"}
                   {expandedCategory === "orange" && "התאמה 80% - פירוט"}
                   {expandedCategory === "purple" && "בדיקת ספקים - פירוט"}
                   {expandedCategory === "blue" && "העברות בנקאיות בלי חשבונית - פירוט"}
+                  {expandedCategory === "special" && "לטיפול מיוחד/תשלום - פירוט"}
+                  {expandedCategory === "command" && "לעשות פקודה - פירוט"}
                 </span>
                 <span className="text-sm opacity-80">
                   {getFilteredAndSortedDetails().length} שורות
