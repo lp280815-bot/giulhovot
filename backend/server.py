@@ -69,6 +69,10 @@ class Supplier(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     account_number: str
     name: str
+    currency: Optional[str] = "ש\"ח"
+    vat_number: Optional[str] = None
+    purchase_account: Optional[str] = None
+    purchase_account_desc: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -77,14 +81,29 @@ class Supplier(BaseModel):
 class SupplierCreate(BaseModel):
     account_number: str
     name: str
+    currency: Optional[str] = "ש\"ח"
+    vat_number: Optional[str] = None
+    purchase_account: Optional[str] = None
+    purchase_account_desc: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
 
 class SupplierUpdate(BaseModel):
     account_number: Optional[str] = None
     name: Optional[str] = None
+    currency: Optional[str] = None
+    vat_number: Optional[str] = None
+    purchase_account: Optional[str] = None
+    purchase_account_desc: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+
+class SupplierImportResult(BaseModel):
+    total: int = 0
+    imported: int = 0
+    updated: int = 0
+    errors: int = 0
+    error_messages: List[str] = []
 
 class ProcessingHistory(BaseModel):
     model_config = ConfigDict(extra="ignore")
