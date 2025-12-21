@@ -799,7 +799,11 @@ ${row.details ? `פרטים: ${row.details}` : ""}
                       </thead>
                       <tbody className="divide-y divide-gray-100">
                         {getFilteredAndSortedDetails().map((row, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50">
+                          <tr 
+                            key={idx} 
+                            className={`hover:bg-gray-50 ${expandedCategory === "emails" ? "cursor-pointer" : ""}`}
+                            onClick={() => expandedCategory === "emails" && openEmailModal(row)}
+                          >
                             <td className="px-4 py-2 text-gray-800">{row.account}</td>
                             <td className="px-4 py-2 text-gray-800">{row.name}</td>
                             <td className={`px-4 py-2 font-medium ${row.amount >= 0 ? "text-green-600" : "text-red-600"}`}>
@@ -808,7 +812,7 @@ ${row.details ? `פרטים: ${row.details}` : ""}
                             <td className="px-4 py-2 text-gray-600">{row.date}</td>
                             <td className="px-4 py-2 text-gray-600">{row.details}</td>
                             <td className="px-4 py-2 text-gray-600">{row.invoice}</td>
-                            <td className="px-4 py-2">
+                            <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                               <select
                                 className="px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8] bg-white"
                                 onChange={(e) => {
@@ -842,6 +846,95 @@ ${row.details ? `פרטים: ${row.details}` : ""}
                   )}
                 </>
               )}
+            </div>
+          )}
+
+          {/* Email Modal */}
+          {emailModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setEmailModal(null)}>
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                {/* Header */}
+                <div className="bg-[#00CDB8] text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
+                  <h3 className="text-xl font-bold">שליחת הודעה לספק</h3>
+                  <button onClick={() => setEmailModal(null)} className="text-white hover:bg-white/20 rounded-full p-1">
+                    <X size={24} />
+                  </button>
+                </div>
+                
+                {/* Content */}
+                <div className="p-6 space-y-6">
+                  {/* Transaction Details */}
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="font-semibold text-gray-700 mb-3">פרטי התנועה</h4>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div><span className="text-gray-500">ספק:</span> <span className="font-medium">{emailModal.name}</span></div>
+                      <div><span className="text-gray-500">חשבון:</span> <span className="font-medium">{emailModal.account}</span></div>
+                      <div><span className="text-gray-500">סכום:</span> <span className={`font-medium ${emailModal.amount >= 0 ? "text-green-600" : "text-red-600"}`}>{emailModal.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪</span></div>
+                      <div><span className="text-gray-500">תאריך:</span> <span className="font-medium">{emailModal.date}</span></div>
+                      {emailModal.details && <div className="col-span-2"><span className="text-gray-500">פרטים:</span> <span className="font-medium">{emailModal.details}</span></div>}
+                    </div>
+                  </div>
+
+                  {/* Supplier Contact Info */}
+                  <div className="bg-blue-50 rounded-xl p-4">
+                    <h4 className="font-semibold text-gray-700 mb-3">פרטי קשר של הספק</h4>
+                    {supplierInfo ? (
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Mail size={16} className="text-blue-500" />
+                          <span className="text-gray-500">מייל:</span> 
+                          <span className="font-medium">{supplierInfo.email || "לא צוין"}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">📱 טלפון:</span> 
+                          <span className="font-medium">{supplierInfo.phone || "לא צוין"}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-sm">לא נמצאו פרטי ספק. יש להוסיף את הספק בלשונית "ספקים".</p>
+                    )}
+                  </div>
+
+                  {/* Email Text */}
+                  <div>
+                    <h4 className="font-semibold text-gray-700 mb-2">טקסט להודעה</h4>
+                    <textarea
+                      value={emailText}
+                      onChange={(e) => setEmailText(e.target.value)}
+                      className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8] resize-none text-sm"
+                      dir="rtl"
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-4">
+                    <button
+                      onClick={handleSendEmail}
+                      disabled={!supplierInfo?.email}
+                      className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+                        supplierInfo?.email 
+                          ? "bg-blue-500 text-white hover:bg-blue-600" 
+                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      }`}
+                    >
+                      <Mail size={20} />
+                      <span>שליחת מייל</span>
+                    </button>
+                    <button
+                      onClick={handleSendWhatsApp}
+                      disabled={!supplierInfo?.phone}
+                      className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+                        supplierInfo?.phone 
+                          ? "bg-green-500 text-white hover:bg-green-600" 
+                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      }`}
+                    >
+                      <span>📱</span>
+                      <span>שליחת וואטסאפ</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
