@@ -984,8 +984,8 @@ async def process_excel(
 
 @api_router.get("/processing-details/{category}")
 async def get_processing_details(category: str):
-    """Get detailed rows for a specific category (green, orange, purple, blue, special, command)."""
-    if category not in ["green", "orange", "purple", "blue", "special", "command"]:
+    """Get detailed rows for a specific category (green, orange, purple, blue, special, command, emails)."""
+    if category not in ["green", "orange", "purple", "blue", "special", "command", "emails"]:
         raise HTTPException(status_code=400, detail="Invalid category")
     
     details = await db.processing_details.find_one({}, {"_id": 0})
@@ -998,7 +998,7 @@ async def get_processing_details(category: str):
 @api_router.post("/move-row")
 async def move_row(request: MoveRowRequest):
     """Move a row from one category to another."""
-    valid_categories = ["green", "orange", "purple", "blue", "special", "command"]
+    valid_categories = ["green", "orange", "purple", "blue", "special", "command", "emails"]
     if request.from_category not in valid_categories or request.to_category not in valid_categories:
         raise HTTPException(status_code=400, detail="Invalid category")
     
