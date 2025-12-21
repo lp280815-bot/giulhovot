@@ -155,6 +155,14 @@ class ProcessingDetails(BaseModel):
     blue: List[DetailedRow] = []
     emails: List[DetailedRow] = []
 
+class SendEmailRequest(BaseModel):
+    sender_email: str
+    sender_password: str
+    recipient_email: str
+    subject: str
+    body: str
+    sender_name: Optional[str] = None
+
 
 # ========= Helper Functions =========
 def parse_amount(val):
