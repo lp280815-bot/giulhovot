@@ -938,56 +938,89 @@ ${settings.companyName}`;
                             onClick={() => handleSort("date")}
                             className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
                           >
-                            תאריך {getSortIcon("date")}
+                            {expandedCategory === "emails" ? "העברות" : "תאריך"} {getSortIcon("date")}
                           </th>
-                          <th 
-                            onClick={() => handleSort("details")}
-                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
-                          >
-                            פרטים {getSortIcon("details")}
-                          </th>
-                          <th 
-                            onClick={() => handleSort("invoice")}
-                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
-                          >
-                            חשבונית {getSortIcon("invoice")}
-                          </th>
+                          {expandedCategory !== "emails" && (
+                            <>
+                              <th 
+                                onClick={() => handleSort("details")}
+                                className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
+                              >
+                                פרטים {getSortIcon("details")}
+                              </th>
+                              <th 
+                                onClick={() => handleSort("invoice")}
+                                className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
+                              >
+                                חשבונית {getSortIcon("invoice")}
+                              </th>
+                            </>
+                          )}
                           <th className="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">
                             פעולה
                           </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {getFilteredAndSortedDetails().map((row, idx) => (
-                          <tr 
-                            key={idx} 
-                            className={`hover:bg-gray-50 ${expandedCategory === "emails" ? "cursor-pointer" : ""}`}
-                            onClick={() => expandedCategory === "emails" && openEmailModal(row)}
-                          >
-                            <td className="px-4 py-2 text-gray-800">{row.account}</td>
-                            <td className="px-4 py-2 text-gray-800">{row.name}</td>
-                            <td className={`px-4 py-2 font-medium ${row.amount >= 0 ? "text-green-600" : "text-red-600"}`}>
-                              {row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })}
-                            </td>
-                            <td className="px-4 py-2 text-gray-600">{row.date}</td>
-                            <td className="px-4 py-2 text-gray-600">{row.details}</td>
-                            <td className="px-4 py-2 text-gray-600">{row.invoice}</td>
-                            <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
-                              <select
-                                className="px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8] bg-white"
-                                onChange={(e) => {
-                                  const originalIndex = categoryDetails.findIndex(r => 
-                                    r.account === row.account && 
-                                    r.name === row.name && 
-                                    Math.abs(r.amount - row.amount) < 0.01 &&
-                                    r.date === row.date
-                                  );
-                                  handleRowAction(row, e.target.value, originalIndex);
-                                  e.target.value = "";
-                                }}
-                                disabled={movingRow !== null}
-                                defaultValue=""
-                              >
+                        {expandedCategory === "emails" ? (
+                          /* Grouped view for emails */
+                          getGroupedBySupplier().map((group, idx) => (
+                            <tr 
+                              key={idx} 
+                              className="hover:bg-[#00CDB8]/5 cursor-pointer transition-colors"
+                              onClick={() => openEmailModal(group.rows[0])}
+                            >
+                              <td className="px-4 py-3 text-gray-800 font-medium">{group.account}</td>
+                              <td className="px-4 py-3 text-gray-800 font-medium">{group.name}</td>
+                              <td className={`px-4 py-3 font-bold ${group.totalAmount >= 0 ? "text-green-600" : "text-red-600"}`}>
+                                {group.totalAmount.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#00CDB8]/10 text-[#00CDB8] rounded-full text-sm font-medium">
+                                  {group.rows.length} העברות
+                                </span>
+                              </td>
+                              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  onClick={() => openEmailModal(group.rows[0])}
+                                  className="px-3 py-1 bg-[#00CDB8] text-white rounded-lg text-sm font-medium hover:bg-[#00B5A3] transition-colors"
+                                >
+                                  שלח מייל
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          /* Regular view for other categories */
+                          getFilteredAndSortedDetails().map((row, idx) => (
+                            <tr 
+                              key={idx} 
+                              className="hover:bg-gray-50"
+                            >
+                              <td className="px-4 py-2 text-gray-800">{row.account}</td>
+                              <td className="px-4 py-2 text-gray-800">{row.name}</td>
+                              <td className={`px-4 py-2 font-medium ${row.amount >= 0 ? "text-green-600" : "text-red-600"}`}>
+                                {row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })}
+                              </td>
+                              <td className="px-4 py-2 text-gray-600">{row.date}</td>
+                              <td className="px-4 py-2 text-gray-600">{row.details}</td>
+                              <td className="px-4 py-2 text-gray-600">{row.invoice}</td>
+                              <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
+                                <select
+                                  className="px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8] bg-white"
+                                  onChange={(e) => {
+                                    const originalIndex = categoryDetails.findIndex(r => 
+                                      r.account === row.account && 
+                                      r.name === row.name && 
+                                      Math.abs(r.amount - row.amount) < 0.01 &&
+                                      r.date === row.date
+                                    );
+                                    handleRowAction(row, e.target.value, originalIndex);
+                                    e.target.value = "";
+                                  }}
+                                  disabled={movingRow !== null}
+                                  defaultValue=""
+                                >
                                 <option value="" disabled>בחר פעולה</option>
                                 <option value="match">התאמה ✓</option>
                                 <option value="special">הסר מרשימה</option>
