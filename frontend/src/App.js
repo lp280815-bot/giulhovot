@@ -23,7 +23,7 @@ const NavTabs = ({ activeTab, setActiveTab }) => {
           onClick={() => setActiveTab(tab.id)}
           className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
             activeTab === tab.id
-              ? "bg-[#00C897] text-white shadow-md"
+              ? "bg-[#00CDB8] text-white shadow-md"
               : "text-gray-600 hover:bg-gray-100"
           }`}
           data-testid={`tab-${tab.id}`}
@@ -45,8 +45,8 @@ const Header = ({ activeTab, setActiveTab }) => {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
-              <span className="text-2xl font-bold text-[#00C897]">RISE</span>
-              <span className="text-xs bg-[#00C897] text-white px-2 py-0.5 rounded-md font-semibold">PRO</span>
+              <span className="text-2xl font-bold text-[#00CDB8]">RISE</span>
+              <span className="text-xs bg-[#00CDB8] text-white px-2 py-0.5 rounded-md font-semibold">PRO</span>
             </div>
             <span className="text-sm text-gray-500">הנהלת חשבונות מתקדמת</span>
           </div>
@@ -87,15 +87,15 @@ const UploadCard = ({ title, description, icon: Icon, onFileSelect, file, onRemo
 
   return (
     <div
-      className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-8 text-center hover:border-[#00C897] transition-all duration-300 cursor-pointer group"
+      className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-8 text-center hover:border-[#00CDB8] transition-all duration-300 cursor-pointer group"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       data-testid={`upload-card-${title}`}
     >
       {file ? (
         <div className="space-y-4">
-          <div className="w-16 h-16 mx-auto bg-[#00C897]/10 rounded-2xl flex items-center justify-center">
-            <Check size={32} className="text-[#00C897]" />
+          <div className="w-16 h-16 mx-auto bg-[#00CDB8]/10 rounded-2xl flex items-center justify-center">
+            <Check size={32} className="text-[#00CDB8]" />
           </div>
           <div>
             <p className="text-lg font-semibold text-gray-800">{file.name}</p>
@@ -122,8 +122,8 @@ const UploadCard = ({ title, description, icon: Icon, onFileSelect, file, onRemo
             onChange={(e) => e.target.files[0] && onFileSelect(e.target.files[0])}
             data-testid="file-input"
           />
-          <div className="w-16 h-16 mx-auto bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-[#00C897]/10 transition-colors">
-            <Icon size={32} className="text-gray-400 group-hover:text-[#00C897] transition-colors" />
+          <div className="w-16 h-16 mx-auto bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-[#00CDB8]/10 transition-colors">
+            <Icon size={32} className="text-gray-400 group-hover:text-[#00CDB8] transition-colors" />
           </div>
           <h3 className="mt-4 text-lg font-semibold text-gray-800">{title}</h3>
           <p className="text-sm text-gray-500 mt-1">{description}</p>
@@ -228,12 +228,12 @@ const ProcessingTab = () => {
       {/* Hero Section */}
       <div className="text-center py-8">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <span className="text-3xl font-bold text-[#00C897]">RISE</span>
-          <span className="text-xs bg-[#00C897] text-white px-2 py-1 rounded-md font-semibold">PRO</span>
+          <span className="text-3xl font-bold text-[#00CDB8]">RISE</span>
+          <span className="text-xs bg-[#00CDB8] text-white px-2 py-1 rounded-md font-semibold">PRO</span>
         </div>
-        <p className="text-sm text-[#00C897] mb-4">הנהלת חשבונות מתקדמת</p>
+        <p className="text-sm text-[#00CDB8] mb-4">הנהלת חשבונות מתקדמת</p>
         <h1 className="text-4xl font-bold text-gray-800">
-          <span className="text-[#00C897]">אופטימיזציה פיננסית</span> בלחיצת כפתור
+          <span className="text-[#00CDB8]">אופטימיזציה פיננסית</span> בלחיצת כפתור
         </h1>
       </div>
 
@@ -264,7 +264,7 @@ const ProcessingTab = () => {
           disabled={!mainFile || isProcessing}
           className={`flex items-center gap-3 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 ${
             mainFile && !isProcessing
-              ? "bg-[#00C897] text-white hover:bg-[#00B085] shadow-lg hover:shadow-xl"
+              ? "bg-[#00CDB8] text-white hover:bg-[#00B085] shadow-lg hover:shadow-xl"
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
           data-testid="process-btn"
@@ -310,7 +310,7 @@ const ProcessingTab = () => {
       {/* N8N Trigger Section */}
       <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-gray-100 p-6 shadow-sm" data-testid="n8n-section">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Mail size={20} className="text-[#00C897]" />
+          <Mail size={20} className="text-[#00CDB8]" />
           <span>טריגר לN8N</span>
         </h3>
         <div className="flex gap-3">
@@ -319,7 +319,7 @@ const ProcessingTab = () => {
             value={n8nClient}
             onChange={(e) => setN8nClient(e.target.value)}
             placeholder="שם לקוח / ספק"
-            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C897] focus:ring-2 focus:ring-[#00C897]/20"
+            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8] focus:ring-2 focus:ring-[#00CDB8]/20"
             data-testid="n8n-input"
           />
           <button
@@ -327,7 +327,7 @@ const ProcessingTab = () => {
             disabled={!n8nClient.trim() || n8nSending}
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
               n8nClient.trim() && !n8nSending
-                ? "bg-[#00C897] text-white hover:bg-[#00B085]"
+                ? "bg-[#00CDB8] text-white hover:bg-[#00B085]"
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
             data-testid="n8n-trigger-btn"
@@ -425,7 +425,7 @@ const SuppliersTab = () => {
             setEditingSupplier(null);
             setFormData({ account_number: "", name: "", email: "", phone: "" });
           }}
-          className="flex items-center gap-2 bg-[#00C897] text-white px-4 py-2 rounded-xl hover:bg-[#00B085] transition-colors"
+          className="flex items-center gap-2 bg-[#00CDB8] text-white px-4 py-2 rounded-xl hover:bg-[#00B085] transition-colors"
           data-testid="add-supplier-btn"
         >
           <Plus size={20} />
@@ -452,7 +452,7 @@ const SuppliersTab = () => {
                   type="text"
                   value={formData.account_number}
                   onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C897]"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
                   required
                   data-testid="supplier-account-input"
                 />
@@ -463,7 +463,7 @@ const SuppliersTab = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C897]"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
                   required
                   data-testid="supplier-name-input"
                 />
@@ -474,7 +474,7 @@ const SuppliersTab = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C897]"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
                   data-testid="supplier-email-input"
                 />
               </div>
@@ -484,14 +484,14 @@ const SuppliersTab = () => {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C897]"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8]"
                   data-testid="supplier-phone-input"
                 />
               </div>
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-[#00C897] text-white py-3 rounded-xl font-medium hover:bg-[#00B085] transition-colors"
+                  className="flex-1 bg-[#00CDB8] text-white py-3 rounded-xl font-medium hover:bg-[#00B085] transition-colors"
                   data-testid="supplier-submit-btn"
                 >
                   {editingSupplier ? "עדכן" : "הוסף"}
@@ -512,7 +512,7 @@ const SuppliersTab = () => {
       {/* Suppliers Table */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 size={32} className="animate-spin text-[#00C897]" />
+          <Loader2 size={32} className="animate-spin text-[#00CDB8]" />
         </div>
       ) : suppliers.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
@@ -542,7 +542,7 @@ const SuppliersTab = () => {
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => handleEdit(supplier)}
-                        className="p-2 text-gray-400 hover:text-[#00C897] hover:bg-[#00C897]/10 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-[#00CDB8] hover:bg-[#00CDB8]/10 rounded-lg transition-colors"
                         data-testid={`edit-supplier-${supplier.id}`}
                       >
                         <Settings size={18} />
@@ -623,9 +623,9 @@ const SettingsTab = () => {
       </div>
 
       {/* N8N Integration Info */}
-      <div className="bg-gradient-to-r from-[#00C897]/10 to-[#00C897]/5 rounded-2xl p-6">
+      <div className="bg-gradient-to-r from-[#00CDB8]/10 to-[#00CDB8]/5 rounded-2xl p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-          <Zap size={20} className="text-[#00C897]" />
+          <Zap size={20} className="text-[#00CDB8]" />
           אינטגרציה עם N8N
         </h3>
         <p className="text-gray-600 text-sm leading-relaxed">
@@ -674,7 +674,7 @@ const HistoryTab = () => {
         <h2 className="text-2xl font-bold text-gray-800">היסטוריית עיבודים</h2>
         <button
           onClick={fetchHistory}
-          className="flex items-center gap-2 text-[#00C897] hover:bg-[#00C897]/10 px-4 py-2 rounded-xl transition-colors"
+          className="flex items-center gap-2 text-[#00CDB8] hover:bg-[#00CDB8]/10 px-4 py-2 rounded-xl transition-colors"
           data-testid="refresh-history-btn"
         >
           <RefreshCw size={18} />
@@ -684,7 +684,7 @@ const HistoryTab = () => {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 size={32} className="animate-spin text-[#00C897]" />
+          <Loader2 size={32} className="animate-spin text-[#00CDB8]" />
         </div>
       ) : history.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
@@ -702,7 +702,7 @@ const HistoryTab = () => {
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <FileSpreadsheet size={20} className="text-[#00C897]" />
+                    <FileSpreadsheet size={20} className="text-[#00CDB8]" />
                     <span className="font-semibold text-gray-800">{item.filename}</span>
                   </div>
                   <p className="text-sm text-gray-500">{formatDate(item.processed_at)}</p>
