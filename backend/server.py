@@ -545,7 +545,7 @@ def process_workbook(wb, email_mapping=None):
                 pass
     stats.special_treatment = unmatched_count
 
-    return wb, stats
+    return wb, stats, details
 
 
 # ========= API Routes =========
