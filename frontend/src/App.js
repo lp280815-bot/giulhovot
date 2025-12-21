@@ -941,20 +941,153 @@ ${settings.companyName}`;
                   {/* Supplier Contact Info */}
                   <div className="bg-blue-50 rounded-xl p-4">
                     <h4 className="font-semibold text-gray-700 mb-3">פרטי קשר של הספק</h4>
-                    {supplierInfo ? (
+                    
+                    {/* Case 1: Supplier exists with all info */}
+                    {supplierInfo && supplierInfo.email && supplierInfo.phone ? (
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div className="flex items-center gap-2">
                           <Mail size={16} className="text-blue-500" />
                           <span className="text-gray-500">מייל:</span> 
-                          <span className="font-medium">{supplierInfo.email || "לא צוין"}</span>
+                          <span className="font-medium">{supplierInfo.email}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-gray-500">📱 טלפון:</span> 
-                          <span className="font-medium">{supplierInfo.phone || "לא צוין"}</span>
+                          <span className="font-medium">{supplierInfo.phone}</span>
                         </div>
                       </div>
+                    ) : supplierInfo && (!supplierInfo.email || !supplierInfo.phone) ? (
+                      /* Case 2: Supplier exists but missing email or phone */
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Mail size={16} className={supplierInfo.email ? "text-blue-500" : "text-red-400"} />
+                            <span className="text-gray-500">מייל:</span> 
+                            <span className={`font-medium ${!supplierInfo.email ? "text-red-500" : ""}`}>
+                              {supplierInfo.email || "חסר מייל"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={!supplierInfo.phone ? "text-red-400" : ""}>📱</span>
+                            <span className="text-gray-500">טלפון:</span> 
+                            <span className={`font-medium ${!supplierInfo.phone ? "text-red-500" : ""}`}>
+                              {supplierInfo.phone || "חסר טלפון"}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {!showAddSupplier ? (
+                          <button
+                            onClick={() => {
+                              setShowAddSupplier(true);
+                              setNewSupplierData({ 
+                                email: supplierInfo.email || "", 
+                                phone: supplierInfo.phone || "" 
+                              });
+                            }}
+                            className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                          >
+                            <Plus size={14} />
+                            הוסף פרטים חסרים
+                          </button>
+                        ) : (
+                          <div className="bg-white rounded-lg p-3 space-y-3">
+                            {!supplierInfo.email && (
+                              <div>
+                                <label className="block text-xs text-gray-500 mb-1">מייל</label>
+                                <input
+                                  type="email"
+                                  value={newSupplierData.email}
+                                  onChange={(e) => setNewSupplierData({...newSupplierData, email: e.target.value})}
+                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8]"
+                                  placeholder="example@mail.com"
+                                />
+                              </div>
+                            )}
+                            {!supplierInfo.phone && (
+                              <div>
+                                <label className="block text-xs text-gray-500 mb-1">טלפון</label>
+                                <input
+                                  type="tel"
+                                  value={newSupplierData.phone}
+                                  onChange={(e) => setNewSupplierData({...newSupplierData, phone: e.target.value})}
+                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8]"
+                                  placeholder="050-0000000"
+                                />
+                              </div>
+                            )}
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleSaveSupplier}
+                                disabled={savingSupplier}
+                                className="px-4 py-2 bg-[#00CDB8] text-white rounded-lg text-sm font-medium hover:bg-[#00B5A3] disabled:opacity-50"
+                              >
+                                {savingSupplier ? "שומר..." : "שמור"}
+                              </button>
+                              <button
+                                onClick={() => setShowAddSupplier(false)}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm"
+                              >
+                                ביטול
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     ) : (
-                      <p className="text-gray-500 text-sm">לא נמצאו פרטי ספק. יש להוסיף את הספק בלשונית ספקים.</p>
+                      /* Case 3: Supplier doesn't exist */
+                      <div className="space-y-3">
+                        <p className="text-red-500 text-sm">
+                          ⚠️ ספק &quot;{emailModal?.name}&quot; לא נמצא במאגר הספקים.
+                        </p>
+                        
+                        {!showAddSupplier ? (
+                          <button
+                            onClick={() => setShowAddSupplier(true)}
+                            className="px-4 py-2 bg-[#00CDB8] text-white rounded-lg text-sm font-medium hover:bg-[#00B5A3] flex items-center gap-2"
+                          >
+                            <Plus size={16} />
+                            הוסף ספק למאגר
+                          </button>
+                        ) : (
+                          <div className="bg-white rounded-lg p-3 space-y-3">
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">מייל</label>
+                              <input
+                                type="email"
+                                value={newSupplierData.email}
+                                onChange={(e) => setNewSupplierData({...newSupplierData, email: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8]"
+                                placeholder="example@mail.com"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">טלפון</label>
+                              <input
+                                type="tel"
+                                value={newSupplierData.phone}
+                                onChange={(e) => setNewSupplierData({...newSupplierData, phone: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8]"
+                                placeholder="050-0000000"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleSaveSupplier}
+                                disabled={savingSupplier || (!newSupplierData.email && !newSupplierData.phone)}
+                                className="px-4 py-2 bg-[#00CDB8] text-white rounded-lg text-sm font-medium hover:bg-[#00B5A3] disabled:opacity-50"
+                              >
+                                {savingSupplier ? "שומר..." : "הוסף ספק"}
+                              </button>
+                              <button
+                                onClick={() => setShowAddSupplier(false)}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm"
+                              >
+                                ביטול
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 
