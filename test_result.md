@@ -101,3 +101,87 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+
+user_problem_statement: "Debt aging analysis app - Add action dropdown per row in details table with options: התאמה, הסר מרשימה (move to special), לעשות פקודה (move to command category)"
+
+backend:
+  - task: "Move row API endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added POST /api/move-row endpoint to move rows between categories (special, command)"
+
+  - task: "Processing details with new categories"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Extended /api/processing-details/{category} to support 'special' and 'command' categories"
+
+frontend:
+  - task: "Action dropdown in details table"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added action column with dropdown (התאמה, הסר מרשימה, לעשות פקודה) in the details table"
+
+  - task: "Clickable special treatment and command buttons"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Made 'לטיפול מיוחד/תשלום' and 'לעשות פקודה' buttons clickable to show their details"
+
+  - task: "Amount filter with tolerance"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed amount filter to use +/- 2 tolerance and ignore sign (abs values)"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Action dropdown in details table"
+    - "Move row API endpoint"
+    - "Clickable special treatment and command buttons"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Implemented action dropdown per row with 3 options. User should upload Excel, click on a category button to expand, then see the action dropdown in each row. Testing should verify: 1) API endpoint /api/move-row works, 2) Frontend dropdown appears and moves rows between categories, 3) Stats update correctly after moving rows"
