@@ -196,11 +196,12 @@ const ProcessingTab = () => {
     const transferCount = supplierRows.length;
     
     // Determine singular/plural text
-    const invoiceText = transferCount === 1 ? "חשבונית חסרה" : "חשבוניות חסרות";
+    const invoiceText = transferCount === 1 ? "חשבונית" : "חשבוניות";
+    const invoiceTextFull = transferCount === 1 ? "חשבונית חסרה" : "חשבוניות חסרות";
     const transferText = transferCount === 1 ? "העברה שבוצעה" : "העברות שבוצעו";
     
     // Subject - singular or plural
-    setEmailSubject(`בקשה ל${invoiceText} בגין ${transferText}`);
+    setEmailSubject(`בקשה ל${invoiceTextFull} בגין ${transferText}`);
     
     // Build transfers list
     let transfersList = "";
