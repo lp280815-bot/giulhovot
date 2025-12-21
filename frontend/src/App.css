@@ -39,7 +39,7 @@ body {
 
 /* Focus Styles */
 *:focus-visible {
-  outline: 2px solid #00C897;
+  outline: 2px solid #00CDB8;
   outline-offset: 2px;
 }
 
@@ -102,7 +102,7 @@ input, textarea, select {
 
 /* Upload Card Drag State */
 .upload-card-dragging {
-  border-color: #00C897 !important;
+  border-color: #00CDB8 !important;
   background-color: rgba(0, 200, 151, 0.05) !important;
 }
 
@@ -123,7 +123,7 @@ th, td {
 
 /* Gradient Text */
 .gradient-text {
-  background: linear-gradient(135deg, #00C897 0%, #00A87A 100%);
+  background: linear-gradient(135deg, #00CDB8 0%, #00A87A 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -141,7 +141,7 @@ th, td {
 
 /* Primary Button Gradient */
 .btn-primary-gradient {
-  background: linear-gradient(135deg, #00C897 0%, #00B085 100%);
+  background: linear-gradient(135deg, #00CDB8 0%, #00B085 100%);
   transition: all 0.3s ease;
 }
 
@@ -162,7 +162,7 @@ th, td {
 
 /* File Drop Zone */
 .drop-zone-active {
-  border-color: #00C897;
+  border-color: #00CDB8;
   background-color: rgba(0, 200, 151, 0.05);
 }
 
