@@ -1029,7 +1029,8 @@ ${settings.companyName}`;
                               </select>
                             </td>
                           </tr>
-                        ))}
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
