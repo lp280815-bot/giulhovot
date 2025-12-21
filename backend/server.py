@@ -127,8 +127,15 @@ class ProcessingStats(BaseModel):
     purple_matches: int = 0
     blue_matches: int = 0
     special_treatment: int = 0  # Rows that didn't match any category
+    command_rows: int = 0  # Rows marked for "לעשות פקודה"
     total_rows: int = 0
     emails_generated: int = 0
+
+class MoveRowRequest(BaseModel):
+    row_index: int
+    from_category: str
+    to_category: str
+    row_data: dict
 
 class DetailedRow(BaseModel):
     account: str = ""
