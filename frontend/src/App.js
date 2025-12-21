@@ -829,25 +829,27 @@ const SuppliersTab = () => {
           <table className="w-full" data-testid="suppliers-table">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">מס׳ ספק</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">שם ספק</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">עוסק מורשה</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">חשבון קניות</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">טלפון</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">מייל</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600 whitespace-nowrap">פעולות</th>
+                <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">מס׳ ספק</th>
+                <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">שם ספק</th>
+                <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">עוסק מורשה</th>
+                <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">חשבון קניות</th>
+                <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap min-w-[200px]">תאור חשבון קניות</th>
+                <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap min-w-[120px]">טלפון</th>
+                <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">מייל</th>
+                <th className="px-3 py-3 text-center text-sm font-semibold text-gray-600 whitespace-nowrap">פעולות</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredSuppliers.map((supplier) => (
                 <tr key={supplier.id} className="hover:bg-gray-50" data-testid={`supplier-row-${supplier.id}`}>
-                  <td className="px-4 py-3 text-sm text-gray-800">{supplier.account_number}</td>
-                  <td className="px-4 py-3 text-sm text-gray-800 font-medium">{supplier.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{supplier.vat_number || "-"}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{supplier.purchase_account_desc || supplier.purchase_account || "-"}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{supplier.phone || "-"}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{supplier.email || "-"}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3 text-sm text-gray-800">{supplier.account_number}</td>
+                  <td className="px-3 py-3 text-sm text-gray-800 font-medium">{supplier.name}</td>
+                  <td className="px-3 py-3 text-sm text-gray-600">{supplier.vat_number || "-"}</td>
+                  <td className="px-3 py-3 text-sm text-gray-600">{supplier.purchase_account || "-"}</td>
+                  <td className="px-3 py-3 text-sm text-gray-600">{supplier.purchase_account_desc || "-"}</td>
+                  <td className="px-3 py-3 text-sm text-gray-600 whitespace-nowrap">{supplier.phone || "-"}</td>
+                  <td className="px-3 py-3 text-sm text-gray-600">{supplier.email || "-"}</td>
+                  <td className="px-3 py-3">
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => handleEdit(supplier)}
