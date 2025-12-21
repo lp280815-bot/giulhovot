@@ -1566,6 +1566,102 @@ const SettingsTab = () => {
           </p>
         </div>
       </div>
+
+      {/* Email Settings Section */}
+      <EmailSettingsSection />
+    </div>
+  );
+};
+
+// Email Settings Component
+const EmailSettingsSection = () => {
+  const [settings, setSettings] = useState({
+    companyEmail: "office@ilang.co.il",
+    signerName: "ילנה זמליאנסקי",
+    companyName: "אילן גינון ופיתוח בע\"מ"
+  });
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("emailSettings");
+    if (stored) {
+      setSettings(JSON.parse(stored));
+    }
+  }, []);
+
+  const handleSave = () => {
+    localStorage.setItem("emailSettings", JSON.stringify(settings));
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 mt-6">
+      <div className="flex items-center gap-3 mb-6">
+        <Mail size={24} className="text-[#00CDB8]" />
+        <h3 className="text-lg font-semibold text-gray-800">הגדרות מייל</h3>
+      </div>
+      
+      <div className="grid md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">מייל החברה לקבלת חשבוניות</label>
+          <input
+            type="email"
+            value={settings.companyEmail}
+            onChange={(e) => setSettings({...settings, companyEmail: e.target.value})}
+            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8]"
+            placeholder="office@company.co.il"
+          />
+          <p className="text-xs text-gray-500 mt-1">המייל שיופיע בהודעה לספק</p>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">שם החותם</label>
+          <input
+            type="text"
+            value={settings.signerName}
+            onChange={(e) => setSettings({...settings, signerName: e.target.value})}
+            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8]"
+            placeholder="שם מלא"
+          />
+          <p className="text-xs text-gray-500 mt-1">השם שיופיע בחתימת המייל</p>
+        </div>
+        
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">שם החברה בחתימה</label>
+          <input
+            type="text"
+            value={settings.companyName}
+            onChange={(e) => setSettings({...settings, companyName: e.target.value})}
+            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8]"
+            placeholder="שם החברה"
+          />
+        </div>
+      </div>
+      
+      <div className="mt-6 flex items-center gap-4">
+        <button
+          onClick={handleSave}
+          className="px-6 py-2 bg-[#00CDB8] text-white rounded-lg font-medium hover:bg-[#00B5A3] transition-colors"
+        >
+          שמור הגדרות
+        </button>
+        {saved && (
+          <span className="text-green-600 text-sm flex items-center gap-1">
+            <Check size={16} /> ההגדרות נשמרו
+          </span>
+        )}
+      </div>
+      
+      {/* Preview */}
+      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">תצוגה מקדימה של חתימת המייל:</h4>
+        <p className="text-sm text-gray-600 whitespace-pre-line">
+          {`בברכה,
+${settings.signerName}
+${settings.companyName}`}
+        </p>
+      </div>
     </div>
   );
 };
