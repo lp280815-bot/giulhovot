@@ -179,6 +179,7 @@ const ProcessingTab = () => {
         orange: parseInt(response.headers["x-stats-orange"] || "0"),
         purple: parseInt(response.headers["x-stats-purple"] || "0"),
         blue: parseInt(response.headers["x-stats-blue"] || "0"),
+        special: parseInt(response.headers["x-stats-special"] || "0"),
         total: parseInt(response.headers["x-stats-total"] || "0"),
         emails: parseInt(response.headers["x-stats-emails"] || "0"),
       };
