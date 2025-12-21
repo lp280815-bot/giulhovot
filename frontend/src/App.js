@@ -504,15 +504,47 @@ const ProcessingTab = () => {
                 <div className="text-center py-8 text-gray-500">אין נתונים להצגה</div>
               ) : (
                 <>
-                  {/* Filter Input */}
-                  <div className="p-4 border-b border-gray-200 bg-gray-50">
-                    <input
-                      type="text"
-                      value={detailsFilter}
-                      onChange={(e) => setDetailsFilter(e.target.value)}
-                      placeholder="חיפוש לפי חשבון, שם, סכום, תאריך או אסמכתא..."
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8] focus:ring-1 focus:ring-[#00CDB8]"
-                    />
+                  {/* Filter Dropdowns */}
+                  <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-wrap gap-4">
+                    {/* Account Filter */}
+                    <div className="relative">
+                      <label className="block text-xs text-gray-500 mb-1">סינון לפי חשבון</label>
+                      <select
+                        value={filters.account}
+                        onChange={(e) => setFilters({ ...filters, account: e.target.value })}
+                        className="px-4 py-2 pr-8 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8] bg-white min-w-[200px]"
+                      >
+                        <option value="">הכל</option>
+                        {getUniqueAccounts().map(acc => (
+                          <option key={acc} value={acc}>{acc}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Name Filter */}
+                    <div className="relative">
+                      <label className="block text-xs text-gray-500 mb-1">סינון לפי ספק</label>
+                      <select
+                        value={filters.name}
+                        onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+                        className="px-4 py-2 pr-8 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8] bg-white min-w-[250px]"
+                      >
+                        <option value="">הכל</option>
+                        {getUniqueNames().map(name => (
+                          <option key={name} value={name}>{name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Clear Filters */}
+                    {(filters.account || filters.name) && (
+                      <button
+                        onClick={() => setFilters({ account: "", name: "" })}
+                        className="self-end px-4 py-2 text-sm text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        נקה סינון
+                      </button>
+                    )}
                   </div>
                   
                   <div className="overflow-x-auto max-h-[500px]">
@@ -521,33 +553,39 @@ const ProcessingTab = () => {
                         <tr>
                           <th 
                             onClick={() => handleSort("account")}
-                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
                           >
                             חשבון {getSortIcon("account")}
                           </th>
                           <th 
                             onClick={() => handleSort("name")}
-                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
                           >
                             שם {getSortIcon("name")}
                           </th>
                           <th 
                             onClick={() => handleSort("amount")}
-                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
                           >
                             סכום {getSortIcon("amount")}
                           </th>
                           <th 
                             onClick={() => handleSort("date")}
-                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
                           >
                             תאריך {getSortIcon("date")}
                           </th>
                           <th 
-                            onClick={() => handleSort("doc_number")}
-                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+                            onClick={() => handleSort("details")}
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
                           >
-                            אסמכתא {getSortIcon("doc_number")}
+                            פרטים {getSortIcon("details")}
+                          </th>
+                          <th 
+                            onClick={() => handleSort("invoice")}
+                            className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
+                          >
+                            חשבונית {getSortIcon("invoice")}
                           </th>
                         </tr>
                       </thead>
@@ -560,15 +598,16 @@ const ProcessingTab = () => {
                               {row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })}
                             </td>
                             <td className="px-4 py-2 text-gray-600">{row.date}</td>
-                            <td className="px-4 py-2 text-gray-600">{row.doc_number}</td>
+                            <td className="px-4 py-2 text-gray-600">{row.details}</td>
+                            <td className="px-4 py-2 text-gray-600">{row.invoice}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                   
-                  {getFilteredAndSortedDetails().length === 0 && detailsFilter && (
-                    <div className="text-center py-4 text-gray-500">לא נמצאו תוצאות לחיפוש</div>
+                  {getFilteredAndSortedDetails().length === 0 && (filters.account || filters.name) && (
+                    <div className="text-center py-4 text-gray-500">לא נמצאו תוצאות לסינון הנבחר</div>
                   )}
                 </>
               )}
