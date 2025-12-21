@@ -1198,6 +1198,221 @@ async def preview_excel(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Error previewing file: {str(e)}")
 
 
+# ========= Microsoft OAuth2 Endpoints =========
+
+@api_router.get("/auth/microsoft/login")
+async def microsoft_login():
+    """Initiate Microsoft OAuth2 login flow."""
+    scope = " ".join(MICROSOFT_SCOPES)
+    auth_url = (
+        f"{MICROSOFT_AUTHORITY}/oauth2/v2.0/authorize"
+        f"?client_id={MICROSOFT_CLIENT_ID}"
+        f"&response_type=code"
+        f"&redirect_uri={quote(MICROSOFT_REDIRECT_URI)}"
+        f"&response_mode=query"
+        f"&scope={quote(scope)}"
+        f"&prompt=select_account"
+    )
+    return {"auth_url": auth_url}
+
+
+@api_router.get("/auth/microsoft/callback")
+async def microsoft_callback(code: str = None, error: str = None, error_description: str = None):
+    """Handle Microsoft OAuth2 callback."""
+    if error:
+        logger.error(f"OAuth error: {error} - {error_description}")
+        return RedirectResponse(url=f"{FRONTEND_URL}?auth_error={error}")
+    
+    if not code:
+        return RedirectResponse(url=f"{FRONTEND_URL}?auth_error=no_code")
+    
+    try:
+        # Exchange code for tokens
+        token_url = f"{MICROSOFT_AUTHORITY}/oauth2/v2.0/token"
+        token_data = {
+            "client_id": MICROSOFT_CLIENT_ID,
+            "client_secret": MICROSOFT_CLIENT_SECRET,
+            "code": code,
+            "redirect_uri": MICROSOFT_REDIRECT_URI,
+            "grant_type": "authorization_code",
+            "scope": " ".join(MICROSOFT_SCOPES)
+        }
+        
+        async with httpx.AsyncClient() as client_http:
+            token_response = await client_http.post(token_url, data=token_data)
+            
+            if token_response.status_code != 200:
+                logger.error(f"Token exchange failed: {token_response.text}")
+                return RedirectResponse(url=f"{FRONTEND_URL}?auth_error=token_exchange_failed")
+            
+            tokens = token_response.json()
+            access_token = tokens.get("access_token")
+            refresh_token = tokens.get("refresh_token")
+            
+            # Get user info
+            user_response = await client_http.get(
+                "https://graph.microsoft.com/v1.0/me",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            
+            if user_response.status_code != 200:
+                logger.error(f"User info failed: {user_response.text}")
+                return RedirectResponse(url=f"{FRONTEND_URL}?auth_error=user_info_failed")
+            
+            user_info = user_response.json()
+            
+            # Save user tokens to database
+            user_data = {
+                "microsoft_id": user_info.get("id"),
+                "email": user_info.get("mail") or user_info.get("userPrincipalName"),
+                "display_name": user_info.get("displayName"),
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.microsoft_users.update_one(
+                {"email": user_data["email"]},
+                {"$set": user_data},
+                upsert=True
+            )
+            
+            logger.info(f"Microsoft user logged in: {user_data['email']}")
+            
+            # Redirect back to frontend with success
+            return RedirectResponse(url=f"{FRONTEND_URL}?auth_success=true&email={quote(user_data['email'])}&name={quote(user_data['display_name'] or '')}")
+    
+    except Exception as e:
+        logger.error(f"OAuth callback error: {e}")
+        return RedirectResponse(url=f"{FRONTEND_URL}?auth_error=server_error")
+
+
+@api_router.get("/auth/microsoft/status")
+async def microsoft_auth_status(email: str):
+    """Check if user is authenticated with Microsoft."""
+    user = await db.microsoft_users.find_one({"email": email}, {"_id": 0})
+    if user:
+        return {
+            "authenticated": True,
+            "email": user.get("email"),
+            "display_name": user.get("display_name")
+        }
+    return {"authenticated": False}
+
+
+@api_router.post("/auth/microsoft/logout")
+async def microsoft_logout(email: str):
+    """Logout user from Microsoft."""
+    await db.microsoft_users.delete_one({"email": email})
+    return {"success": True}
+
+
+async def refresh_microsoft_token(user_email: str):
+    """Refresh Microsoft access token."""
+    user = await db.microsoft_users.find_one({"email": user_email})
+    if not user or not user.get("refresh_token"):
+        return None
+    
+    try:
+        token_url = f"{MICROSOFT_AUTHORITY}/oauth2/v2.0/token"
+        token_data = {
+            "client_id": MICROSOFT_CLIENT_ID,
+            "client_secret": MICROSOFT_CLIENT_SECRET,
+            "refresh_token": user["refresh_token"],
+            "grant_type": "refresh_token",
+            "scope": " ".join(MICROSOFT_SCOPES)
+        }
+        
+        async with httpx.AsyncClient() as client_http:
+            response = await client_http.post(token_url, data=token_data)
+            
+            if response.status_code != 200:
+                logger.error(f"Token refresh failed: {response.text}")
+                return None
+            
+            tokens = response.json()
+            
+            # Update tokens in database
+            await db.microsoft_users.update_one(
+                {"email": user_email},
+                {"$set": {
+                    "access_token": tokens.get("access_token"),
+                    "refresh_token": tokens.get("refresh_token", user["refresh_token"]),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            return tokens.get("access_token")
+    
+    except Exception as e:
+        logger.error(f"Token refresh error: {e}")
+        return None
+
+
+class MicrosoftEmailRequest(BaseModel):
+    sender_email: str
+    recipient_email: str
+    subject: str
+    body: str
+
+
+@api_router.post("/send-email-microsoft")
+async def send_email_microsoft(request: MicrosoftEmailRequest):
+    """Send email via Microsoft Graph API."""
+    # Get user from database
+    user = await db.microsoft_users.find_one({"email": request.sender_email})
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="המשתמש לא מחובר ל-Microsoft. יש להתחבר קודם.")
+    
+    access_token = user.get("access_token")
+    
+    # Try to send email
+    async with httpx.AsyncClient() as client_http:
+        email_data = {
+            "message": {
+                "subject": request.subject,
+                "body": {
+                    "contentType": "HTML",
+                    "content": request.body.replace('\n', '<br>')
+                },
+                "toRecipients": [
+                    {"emailAddress": {"address": request.recipient_email}}
+                ]
+            },
+            "saveToSentItems": True
+        }
+        
+        response = await client_http.post(
+            "https://graph.microsoft.com/v1.0/me/sendMail",
+            json=email_data,
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+        )
+        
+        # If token expired, try to refresh and retry
+        if response.status_code == 401:
+            new_token = await refresh_microsoft_token(request.sender_email)
+            if new_token:
+                response = await client_http.post(
+                    "https://graph.microsoft.com/v1.0/me/sendMail",
+                    json=email_data,
+                    headers={
+                        "Authorization": f"Bearer {new_token}",
+                        "Content-Type": "application/json"
+                    }
+                )
+        
+        if response.status_code == 202:
+            logger.info(f"Email sent via Microsoft Graph from {request.sender_email} to {request.recipient_email}")
+            return {"success": True, "message": "המייל נשלח בהצלחה!"}
+        else:
+            logger.error(f"Microsoft Graph email error: {response.status_code} - {response.text}")
+            raise HTTPException(status_code=500, detail=f"שגיאה בשליחת המייל: {response.text}")
+
+
 # Include router and middleware
 app.include_router(api_router)
 
