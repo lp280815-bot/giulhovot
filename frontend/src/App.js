@@ -223,7 +223,8 @@ const ProcessingTab = () => {
     }
     if (filters.amount) {
       const filterAmount = parseFloat(filters.amount);
-      filtered = filtered.filter(row => Math.abs(row.amount) === filterAmount);
+      // סטייה של עד 2 ש"ח - לא משנה אם פלוס או מינוס
+      filtered = filtered.filter(row => Math.abs(Math.abs(row.amount) - filterAmount) <= 2);
     }
     
     // Apply sort
