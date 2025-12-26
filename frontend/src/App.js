@@ -1023,6 +1023,22 @@ ${settings.companyName}`;
                               >
                                 חשבונית {getSortIcon("invoice")}
                               </th>
+                              {expandedCategory === "special" && (
+                                <>
+                                  <th 
+                                    onClick={() => handleSort("account_description")}
+                                    className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
+                                  >
+                                    תאור חשבון {getSortIcon("account_description")}
+                                  </th>
+                                  <th 
+                                    onClick={() => handleSort("supplier_account")}
+                                    className="px-4 py-3 text-right font-semibold text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors whitespace-nowrap"
+                                  >
+                                    חש. ספק {getSortIcon("supplier_account")}
+                                  </th>
+                                </>
+                              )}
                             </>
                           )}
                           <th className="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">
@@ -2112,6 +2128,7 @@ const EmailSettingsSection = () => {
     };
     
     checkAuthAndHandleCallback();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSave = () => {
