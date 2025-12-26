@@ -1563,9 +1563,15 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                                 {expandedCategory === "ready_payment" ? (
                                   /* Payment date for ready_payment category */
                                   (() => {
-                                    // Calculate payment date (same logic as in payment modal)
-                                    const calculatePaymentDate = (invoiceDateStr) => {
+                                    // Calculate payment date using stored payment_terms
+                                    const calculatePaymentDate = (invoiceDateStr, termsCode) => {
                                       try {
+                                        // Payment terms mapping: code -> months to add
+                                        const termsMonths = {
+                                          "01": 1, "02": 1, "03": 2, "04": 2, 
+                                          "05": 3, "06": 4, "07": 5, "08": 0
+                                        };
+                                        
                                         let invoiceDate;
                                         if (invoiceDateStr && invoiceDateStr.includes("/")) {
                                           const [d, m, y] = invoiceDateStr.split("/").map(Number);
@@ -1575,8 +1581,10 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                                         } else {
                                           return "-";
                                         }
-                                        // Default to שוטף + 30 if no terms
-                                        let paymentMonth = invoiceDate.getMonth() + 2;
+                                        
+                                        // Use stored terms or default to שוטף + 30 (code 03)
+                                        const monthsToAdd = termsMonths[termsCode] || 2;
+                                        let paymentMonth = invoiceDate.getMonth() + monthsToAdd;
                                         let paymentYear = invoiceDate.getFullYear();
                                         while (paymentMonth > 11) {
                                           paymentMonth -= 12;
@@ -1593,7 +1601,7 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                                     };
                                     return (
                                       <span className="text-teal-600 font-medium">
-                                        {calculatePaymentDate(row.date)}
+                                        {calculatePaymentDate(row.date, row.payment_terms)}
                                       </span>
                                     );
                                   })()
