@@ -2467,6 +2467,7 @@ const SuppliersTab = () => {
                 <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap min-w-[200px]">תאור חשבון קניות</th>
                 <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap min-w-[120px]">טלפון</th>
                 <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">מייל</th>
+                <th className="px-3 py-3 text-right text-sm font-semibold text-gray-600 whitespace-nowrap">תנאי תשלום</th>
                 <th className="px-3 py-3 text-center text-sm font-semibold text-gray-600 whitespace-nowrap">פעולות</th>
               </tr>
             </thead>
