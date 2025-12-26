@@ -1766,13 +1766,85 @@ ${settings.companyEmail}`;
                     </div>
                   </div>
                   
-                  {/* Supplier Contact Warning */}
+                  {/* Supplier Contact Warning or Add Form */}
                   {!supplierInfo?.email && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-start gap-2">
-                      <AlertCircle size={18} className="text-yellow-600 mt-0.5" />
-                      <p className="text-sm text-yellow-700">
-                        לא נמצא מייל לספק זה. יש להוסיף את פרטי הספק קודם בלשונית &quot;ספקים&quot;.
-                      </p>
+                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle size={18} className="text-purple-600 mt-0.5" />
+                        <p className="text-sm text-purple-700">
+                          לא נמצא מייל לספק זה. הוסף את פרטי הספק כאן:
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">מייל ספק</label>
+                          <input
+                            type="email"
+                            value={newSupplierData.email}
+                            onChange={(e) => setNewSupplierData({...newSupplierData, email: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-purple-500"
+                            placeholder="supplier@example.com"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">טלפון (אופציונלי)</label>
+                          <input
+                            type="tel"
+                            value={newSupplierData.phone}
+                            onChange={(e) => setNewSupplierData({...newSupplierData, phone: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-purple-500"
+                            placeholder="050-0000000"
+                          />
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!newSupplierData.email) {
+                              alert("יש להזין מייל");
+                              return;
+                            }
+                            setSavingSupplier(true);
+                            try {
+                              const newSupplier = {
+                                account_number: String(statementModal.row.account),
+                                name: statementModal.row.name,
+                                email: newSupplierData.email,
+                                phone: newSupplierData.phone || "",
+                                currency: "ש\"ח",
+                                vat_number: "",
+                                purchase_account: "",
+                                purchase_account_desc: ""
+                              };
+                              const response = await axios.post(`${API}/suppliers`, newSupplier);
+                              setSupplierInfo(response.data);
+                              setNewSupplierData({ email: "", phone: "" });
+                            } catch (err) {
+                              console.error("Error saving supplier:", err);
+                              alert("שגיאה בשמירת הספק");
+                            } finally {
+                              setSavingSupplier(false);
+                            }
+                          }}
+                          disabled={savingSupplier || !newSupplierData.email}
+                          className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            newSupplierData.email && !savingSupplier
+                              ? "bg-purple-600 text-white hover:bg-purple-700" 
+                              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          }`}
+                        >
+                          {savingSupplier ? (
+                            <>
+                              <Loader2 size={16} className="animate-spin" />
+                              <span>שומר...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus size={16} />
+                              <span>הוסף ספק ושלח בקשה</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   )}
                   
