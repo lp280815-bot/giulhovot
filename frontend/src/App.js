@@ -2739,13 +2739,20 @@ const EmailSettingsSection = () => {
       </div>
       
       {/* Preview */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">תצוגה מקדימה של חתימת המייל:</h4>
-        <p className="text-sm text-gray-600 whitespace-pre-line">
-          {`בברכה,
+      <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+          <Eye size={16} />
+          תצוגה מקדימה של חתימת המייל:
+        </h4>
+        <div className="bg-white rounded-lg p-4 border border-gray-100">
+          <p className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">
+            {`*** אשמח לקבל חשבוניות במייל: ${settings.companyEmail} ***
+
+בברכה,
 ${settings.signerName}
 ${settings.companyName}`}
-        </p>
+          </p>
+        </div>
       </div>
     </div>
   );
