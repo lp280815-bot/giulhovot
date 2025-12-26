@@ -133,15 +133,18 @@ backend:
 frontend:
   - task: "Special Treatment details table with new columns"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added 'תאור חשבון' (account_description) and 'חש. ספק' (supplier_account) columns to the Special Treatment category details table. These columns appear only when clicking on the red 'לטיפול מיוחד/תשלום' button."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTING SUCCESSFUL: Verified Special Treatment category functionality. Backend API returns 5 rows with correct data. Frontend displays RED button with number '5' labeled 'לטיפול מיוחד/תשלום'. Clicking button expands table with ALL required columns: חשבון, שם, סכום, תאריך, פרטים, חשבונית, תאור חשבון, חש. ספק, פעולה. All 5 rows display correctly with proper data in new columns (account_description and supplier_account). Action dropdowns present in each row. Feature working as expected."
 
   - task: "Linter warning fix"
     implemented: true
