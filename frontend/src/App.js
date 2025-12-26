@@ -176,6 +176,17 @@ const ProcessingTab = () => {
   const [showAddSupplier, setShowAddSupplier] = useState(false);
   const [newSupplierData, setNewSupplierData] = useState({ email: "", phone: "" });
   const [savingSupplier, setSavingSupplier] = useState(false);
+  
+  // Payment modal state
+  const [paymentModal, setPaymentModal] = useState(null);
+  const [selectedForPayment, setSelectedForPayment] = useState([]);
+  const [generatingPayment, setGeneratingPayment] = useState(false);
+  
+  // Statement request modal state
+  const [statementModal, setStatementModal] = useState(null);
+  const [statementDateFrom, setStatementDateFrom] = useState("");
+  const [statementDateTo, setStatementDateTo] = useState("");
+  const [sendingStatement, setSendingStatement] = useState(false);
 
   // Get email settings from localStorage
   const getEmailSettings = () => {
