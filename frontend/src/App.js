@@ -1148,8 +1148,16 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
   };
 
   // Clear all results and localStorage
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     if (window.confirm("האם לנקות את כל התוצאות?")) {
+      try {
+        // Clear database processing details
+        await axios.delete(`${API}/processing-details`);
+      } catch (err) {
+        console.error("Error clearing processing details:", err);
+      }
+      
+      // Clear local state
       setMainFile(null);
       setStats(null);
       setProcessedFileUrl(null);
