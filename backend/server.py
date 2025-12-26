@@ -931,6 +931,20 @@ async def delete_all_suppliers():
     return {"message": f"Deleted {result.deleted_count} suppliers", "count": result.deleted_count}
 
 
+@api_router.put("/suppliers/by-account/{account_number}")
+async def update_supplier_by_account(account_number: str, update: SupplierUpdate):
+    """Update supplier by account number (not by id)."""
+    existing = await db.suppliers.find_one({"account_number": account_number})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.suppliers.update_one({"account_number": account_number}, {"$set": update_data})
+    
+    updated = await db.suppliers.find_one({"account_number": account_number}, {"_id": 0})
+    return updated
 
 
 # ========= Processing History =========
