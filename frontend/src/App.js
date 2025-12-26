@@ -1370,6 +1370,7 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                                     <option value="payment">💰 תשלום</option>
                                     <option value="command">📝 לעשות פקודה</option>
                                     <option value="request_statement">📋 לבקש כרטסת</option>
+                                    <option value="ka">🔖 כ.א</option>
                                   </select>
                                 ) : (
                                   /* Regular actions for other categories */
