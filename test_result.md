@@ -174,3 +174,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Completed implementation of expanded details view for 'Special Treatment/Payment' category. The red button 'לטיפול מיוחד/תשלום' is now clickable and shows a details table with the following columns: חשבון, שם, סכום, תאריך, פרטים, חשבונית, תאור חשבון, חש. ספק (these last 2 are new). Testing should: 1) Upload an Excel file for processing, 2) Click the red 'לטיפול מיוחד/תשלום' button, 3) Verify the details table expands and shows ALL columns including the new ones (תאור חשבון, חש. ספק)"
+  - agent: "testing"
+    message: "✅ TESTING COMPLETED SUCCESSFULLY: Special Treatment category is working perfectly. Backend API confirmed returning 5 rows with correct data structure including new columns. Frontend UI test passed: 1) RED button displays correctly with number '5' and Hebrew label 'לטיפול מיוחד/תשלום', 2) Button click expands table with all 9 required columns including new ones 'תאור חשבון' and 'חש. ספק', 3) All 5 data rows display with proper content in new columns, 4) Action dropdowns present. Feature implementation is complete and functional."
