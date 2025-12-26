@@ -3222,6 +3222,17 @@ const EmailSettingsSection = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 mt-6">
+        <div className="flex items-center justify-center py-8">
+          <Loader2 size={32} className="animate-spin text-[#00CDB8]" />
+          <span className="mr-3 text-gray-600">טוען הגדרות...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 mt-6">
       <div className="flex items-center gap-3 mb-2">
