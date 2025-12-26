@@ -1104,6 +1104,11 @@ async def move_row(request: MoveRowRequest):
     if not row_to_move:
         raise HTTPException(status_code=404, detail="Row not found in source category")
     
+    # Merge with request data to include payment_terms and other additional fields
+    # This ensures frontend-provided data (like payment_terms) is preserved
+    if request.row_data.get("payment_terms"):
+        row_to_move["payment_terms"] = request.row_data["payment_terms"]
+    
     # Add to target
     target_list.append(row_to_move)
     
