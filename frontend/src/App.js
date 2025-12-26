@@ -1618,50 +1618,10 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                               )}
                               <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                                 {expandedCategory === "ready_payment" ? (
-                                  /* Payment date for ready_payment category */
-                                  (() => {
-                                    // Calculate payment date using stored payment_terms
-                                    const calculatePaymentDate = (invoiceDateStr, termsCode) => {
-                                      try {
-                                        // Payment terms mapping: code -> months to add
-                                        const termsMonths = {
-                                          "01": 1, "02": 1, "03": 2, "04": 2, 
-                                          "05": 3, "06": 4, "07": 5, "08": 0
-                                        };
-                                        
-                                        let invoiceDate;
-                                        if (invoiceDateStr && invoiceDateStr.includes("/")) {
-                                          const [d, m, y] = invoiceDateStr.split("/").map(Number);
-                                          invoiceDate = new Date(y < 100 ? 2000 + y : y, m - 1, d);
-                                        } else if (invoiceDateStr && invoiceDateStr.includes("-")) {
-                                          invoiceDate = new Date(invoiceDateStr);
-                                        } else {
-                                          return "-";
-                                        }
-                                        
-                                        // Use stored terms or default to שוטף + 30 (code 03)
-                                        const monthsToAdd = termsMonths[termsCode] || 2;
-                                        let paymentMonth = invoiceDate.getMonth() + monthsToAdd;
-                                        let paymentYear = invoiceDate.getFullYear();
-                                        while (paymentMonth > 11) {
-                                          paymentMonth -= 12;
-                                          paymentYear++;
-                                        }
-                                        const paymentDate = new Date(paymentYear, paymentMonth, 10);
-                                        if (paymentDate < new Date()) {
-                                          paymentDate.setMonth(paymentDate.getMonth() + 1);
-                                        }
-                                        return `${String(paymentDate.getDate()).padStart(2, '0')}/${String(paymentDate.getMonth() + 1).padStart(2, '0')}/${paymentDate.getFullYear()}`;
-                                      } catch {
-                                        return "-";
-                                      }
-                                    };
-                                    return (
-                                      <span className="text-teal-600 font-medium">
-                                        {calculatePaymentDate(row.date, row.payment_terms)}
-                                      </span>
-                                    );
-                                  })()
+                                  /* Payment date for ready_payment category - uses global calculatePaymentDate */
+                                  <span className="text-teal-600 font-medium">
+                                    {calculatePaymentDate(row.date, row.payment_terms)}
+                                  </span>
                                 ) : expandedCategory === "special" ? (
                                   /* Special actions for לטיפול מיוחד/תשלום */
                                   <select
