@@ -315,6 +315,9 @@ def process_workbook(wb, email_mapping=None):
     # Try to find additional columns
     col_details = headers.get("פרטים") or headers.get("פירוט") or headers.get("תאור")
     col_invoice = headers.get("חשבונית") or headers.get("מס' חשבונית") or headers.get("מספר חשבונית") or headers.get("אסמכתא")
+    col_acc_desc = headers.get("תאור חשבון") or headers.get("תיאור חשבון") or headers.get("שם חשבון")
+    col_supplier_acc = headers.get("חש. ספק") or headers.get("חשבון ספק") or headers.get("מס ספק")
+    col_invoice_date = headers.get("תאריך חשבונית") or headers.get("ת. חשבונית")
 
     # Statistics
     stats = ProcessingStats()
@@ -330,12 +333,21 @@ def process_workbook(wb, email_mapping=None):
         date_val = row[col_pay - 1].value if col_pay else ""
         details_val = row[col_details - 1].value if col_details else ""
         invoice_val = row[col_invoice - 1].value if col_invoice else ""
+        acc_desc_val = row[col_acc_desc - 1].value if col_acc_desc else ""
+        supplier_acc_val = row[col_supplier_acc - 1].value if col_supplier_acc else ""
+        invoice_date_val = row[col_invoice_date - 1].value if col_invoice_date else date_val
         
         # Format date
         if isinstance(date_val, datetime):
             date_str = date_val.strftime("%d/%m/%Y")
         else:
             date_str = str(date_val) if date_val else ""
+        
+        # Format invoice date
+        if isinstance(invoice_date_val, datetime):
+            invoice_date_str = invoice_date_val.strftime("%d/%m/%Y")
+        else:
+            invoice_date_str = str(invoice_date_val) if invoice_date_val else date_str
         
         # Parse amount
         try:
@@ -345,9 +357,11 @@ def process_workbook(wb, email_mapping=None):
             
         return DetailedRow(
             account=str(acc_val) if acc_val else "",
+            account_description=str(acc_desc_val) if acc_desc_val else str(name_val) if name_val else "",
+            supplier_account=str(supplier_acc_val) if supplier_acc_val else str(acc_val) if acc_val else "",
             name=str(name_val) if name_val else "",
             amount=amount,
-            date=date_str,
+            date=invoice_date_str,
             details=str(details_val) if details_val else "",
             invoice=str(invoice_val) if invoice_val else ""
         )
