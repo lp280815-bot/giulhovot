@@ -1133,6 +1133,21 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
               <p className="text-xs text-gray-500 mt-1">(אפור)</p>
               <ChevronDown size={16} className={`mx-auto mt-2 text-gray-500 transition-transform ${expandedCategory === "ka" ? "rotate-180" : ""}`} />
             </button>
+
+            {/* Ready for Payment - Teal/Cyan */}
+            <button
+              onClick={() => handleCategoryClick("ready_payment")}
+              className={`bg-white rounded-2xl border-2 p-4 text-center hover:shadow-lg transition-all cursor-pointer ${
+                expandedCategory === "ready_payment" ? "border-teal-600 shadow-lg ring-2 ring-teal-200" : "border-teal-500"
+              }`}
+            >
+              <div className="w-12 h-12 mx-auto bg-teal-500 rounded-full flex items-center justify-center mb-3">
+                <span className="text-white font-bold text-lg">{stats.ready_payment || 0}</span>
+              </div>
+              <h4 className="font-semibold text-gray-800 text-sm">מוכן לתשלום</h4>
+              <p className="text-xs text-teal-600 mt-1">(טורקיז)</p>
+              <ChevronDown size={16} className={`mx-auto mt-2 text-teal-500 transition-transform ${expandedCategory === "ready_payment" ? "rotate-180" : ""}`} />
+            </button>
           </div>
 
           {/* Expanded Details Table */}
