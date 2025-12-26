@@ -1236,22 +1236,30 @@ async def generate_payment(request: PaymentRequest):
             cell.fill = header_fill
             cell.alignment = header_alignment
         
-        # Payment terms mapping: code -> months to add after end of invoice month
+        # Payment terms mapping: code -> months to add to invoice date
+        # לוגיקה: תאריך חשבונית + תנאי תשלום = תאריך בסיס, תשלום ב-10 לחודש
         payment_terms_map = {
-            "01": 0,   # שוטף - end of invoice month, payment on 10th of next month
-            "02": 0,   # שוטף + 15 - similar to שוטף but with 15 days
-            "03": 1,   # שוטף + 30 - payment on 10th of month after next
-            "04": 1,   # שוטף + 45
-            "05": 2,   # שוטף + 60 - payment 2 months after
-            "06": 3,   # שוטף + 90 - payment 3 months after
-            "07": 4,   # שוטף + 120 - payment 4 months after
+            "01": 1,   # שוטף - 1 month after invoice
+            "02": 1,   # שוטף + 15
+            "03": 2,   # שוטף + 30
+            "04": 2,   # שוטף + 45
+            "05": 3,   # שוטף + 60
+            "06": 4,   # שוטף + 90
+            "07": 5,   # שוטף + 120
             "08": 0,   # מזומן - immediate
         }
         
         # Calculate payment date based on invoice date and payment terms
         def calculate_payment_date(invoice_date_str, payment_terms_code):
+            """
+            חישוב תאריך תשלום:
+            1. תאריך חשבונית + תנאי תשלום = תאריך בסיס
+            2. התשלום תמיד ב-10 לחודש
+            3. אם ה-10 כבר עבר - מעבירים לחודש הבא
+            """
             try:
                 today = datetime.now()
+                today = today.replace(hour=0, minute=0, second=0, microsecond=0)
                 
                 # Parse invoice date
                 if "/" in str(invoice_date_str):
@@ -1262,17 +1270,13 @@ async def generate_payment(request: PaymentRequest):
                             year += 2000
                         invoice_date = datetime(year, month, day)
                     else:
-                        invoice_date = today
+                        return ""
                 else:
-                    invoice_date = today
+                    return ""
                 
-                # Get months to add based on payment terms
-                months_to_add = payment_terms_map.get(payment_terms_code, 0)
-                
-                # Calculate payment month:
-                # שוטף (01) = invoice month + 1 (payment on 10th of next month)
-                # שוטף + 60 (05) = invoice month + 1 + 2 = invoice month + 3
-                payment_month = invoice_date.month + 1 + months_to_add
+                # Step 1: Invoice date + payment terms = base date
+                months_to_add = payment_terms_map.get(payment_terms_code, 1)  # default: 1 month
+                payment_month = invoice_date.month + months_to_add
                 payment_year = invoice_date.year
                 
                 # Handle year rollover
@@ -1280,10 +1284,10 @@ async def generate_payment(request: PaymentRequest):
                     payment_month -= 12
                     payment_year += 1
                 
-                # Payment is always on the 10th
+                # Step 2: Payment is always on the 10th
                 payment_date = datetime(payment_year, payment_month, 10)
                 
-                # If payment date has already passed, move to next month's 10th
+                # Step 3: If the 10th has already passed, move to next month
                 if payment_date < today:
                     payment_month += 1
                     if payment_month > 12:
