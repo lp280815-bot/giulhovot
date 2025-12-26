@@ -1969,7 +1969,20 @@ const SuppliersTab = () => {
     purchase_account_desc: "",
     email: "",
     phone: "",
+    payment_terms: "",
   });
+
+  // Payment terms options
+  const paymentTermsOptions = [
+    { code: "01", label: "שוטף", months: 0, days: 0 },
+    { code: "02", label: "שוטף + 15", months: 0, days: 15 },
+    { code: "03", label: "שוטף + 30", months: 1, days: 0 },
+    { code: "04", label: "שוטף + 45", months: 1, days: 15 },
+    { code: "05", label: "שוטף + 60", months: 2, days: 0 },
+    { code: "06", label: "שוטף + 90", months: 3, days: 0 },
+    { code: "07", label: "שוטף + 120", months: 4, days: 0 },
+    { code: "08", label: "מזומן", months: 0, days: 0 },
+  ];
 
   const fetchSuppliers = async () => {
     setLoading(true);
