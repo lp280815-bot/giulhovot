@@ -876,12 +876,12 @@ async def import_suppliers_from_excel(
         # Map column names
         col_account = headers.get("מס' ספק") or headers.get("מס ספק") or headers.get("חשבון")
         col_name = headers.get("שם ספק") or headers.get("שם")
-        col_currency = headers.get("מטבע")
         col_vat = headers.get("מס. עוסק מורשה") or headers.get("עוסק מורשה")
         col_purchase = headers.get("חשבון קניות")
         col_purchase_desc = headers.get("תאור חשבון קניות") or headers.get("תיאור חשבון קניות")
         col_phone = headers.get("טלפון")
         col_email = headers.get("e-mail") or headers.get("מייל") or headers.get("Email")
+        col_payment_terms = headers.get("תנאי תשלום")
         
         if not col_account or not col_name:
             raise HTTPException(
@@ -894,6 +894,9 @@ async def import_suppliers_from_excel(
         # If replace_all, delete existing suppliers
         if replace_all:
             await db.suppliers.delete_many({})
+        
+        # Valid payment terms codes
+        valid_payment_terms = {"01", "02", "03", "04", "05", "06", "07", "08"}
         
         # Process rows
         for row in ws.iter_rows(min_row=header_row + 1):
@@ -910,12 +913,22 @@ async def import_suppliers_from_excel(
                 supplier_name = str(name_val).strip()
                 
                 # Get optional fields
-                currency = str(row[col_currency - 1].value).strip() if col_currency and row[col_currency - 1].value else "ש\"ח"
                 vat_number = str(row[col_vat - 1].value).strip() if col_vat and row[col_vat - 1].value else None
                 purchase_account = str(row[col_purchase - 1].value).strip() if col_purchase and row[col_purchase - 1].value else None
                 purchase_account_desc = str(row[col_purchase_desc - 1].value).strip() if col_purchase_desc and row[col_purchase_desc - 1].value else None
                 phone = str(row[col_phone - 1].value).strip() if col_phone and row[col_phone - 1].value else None
                 email = str(row[col_email - 1].value).strip() if col_email and row[col_email - 1].value else None
+                
+                # Payment terms - extract code if it includes label (e.g., "03 - שוטף + 30")
+                payment_terms = None
+                if col_payment_terms and row[col_payment_terms - 1].value:
+                    pt_val = str(row[col_payment_terms - 1].value).strip()
+                    # Extract just the code if it's in format "XX - label"
+                    if " - " in pt_val:
+                        pt_val = pt_val.split(" - ")[0].strip()
+                    # Validate it's a valid code
+                    if pt_val in valid_payment_terms:
+                        payment_terms = pt_val
                 
                 # Clean up phone/email if they are "0" or empty
                 if phone in ["0", "None", ""]:
