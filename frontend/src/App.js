@@ -526,6 +526,53 @@ ${signaturePart}`;
     }
   };
 
+  // Move selected rows to Ready for Payment category
+  const handleMoveToReadyPayment = async () => {
+    if (selectedForPayment.length === 0) {
+      alert("יש לבחור לפחות שורה אחת");
+      return;
+    }
+    
+    setGeneratingPayment(true);
+    try {
+      const rowsToMove = paymentModal.supplierRows.filter((_, idx) => 
+        selectedForPayment.includes(idx)
+      );
+      
+      // Move each selected row to ready_payment
+      for (const row of rowsToMove) {
+        await axios.post(`${API}/move-row`, {
+          row_index: 0,
+          from_category: "special",
+          to_category: "ready_payment",
+          row_data: row
+        });
+      }
+      
+      // Remove moved rows from current view
+      const movedKeys = new Set(rowsToMove.map(r => `${r.account}-${r.amount}-${r.date}`));
+      setCategoryDetails(prev => prev.filter(r => 
+        !movedKeys.has(`${r.account}-${r.amount}-${r.date}`)
+      ));
+      
+      // Update stats
+      setStats(prev => ({
+        ...prev,
+        special: Math.max(0, (prev.special || 0) - rowsToMove.length),
+        ready_payment: (prev.ready_payment || 0) + rowsToMove.length
+      }));
+      
+      setPaymentModal(null);
+      setSelectedForPayment([]);
+      alert(`${rowsToMove.length} שורות הועברו למוכן לתשלום`);
+    } catch (err) {
+      console.error("Error moving to ready payment:", err);
+      alert("שגיאה בהעברת השורות");
+    } finally {
+      setGeneratingPayment(false);
+    }
+  };
+
   // Handle request statement action - open statement modal
   const handleRequestStatement = async (row, rowIndex) => {
     // Close other modals first
