@@ -1113,7 +1113,7 @@ class DeleteRowRequest(BaseModel):
 @api_router.post("/delete-row")
 async def delete_row(request: DeleteRowRequest):
     """Delete a row from a category (remove completely without moving)."""
-    valid_categories = ["green", "orange", "purple", "blue", "special", "command", "emails"]
+    valid_categories = ["green", "orange", "purple", "blue", "special", "command", "emails", "ka", "ready_payment"]
     if request.from_category not in valid_categories:
         raise HTTPException(status_code=400, detail="Invalid category")
     
