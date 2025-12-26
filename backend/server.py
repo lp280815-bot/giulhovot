@@ -1001,6 +1001,7 @@ async def process_excel(
             "special": [d.model_dump() for d in details.special],  # Rows without any match
             "command": [],  # Will be populated when user moves rows here
             "ka": [],  # Will be populated when user moves rows here
+            "ready_payment": [],  # Will be populated when user moves rows here
         }
         await db.processing_details.delete_many({})  # Keep only latest
         await db.processing_details.insert_one(details_doc)
