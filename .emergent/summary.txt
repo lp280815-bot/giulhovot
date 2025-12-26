@@ -1,86 +1,77 @@
 <analysis>**original_problem_statement:**
-The user requested to build a web application based on an initial Python script for a Streamlit app designed for debt aging analysis (גיול חובות). The script's purpose is to process Excel files, categorize transactions based on amount matching, and identify items needing follow-up.
+The user requested to build a web application based on an initial Python script for a Streamlit app designed for debt aging (גיול חובות) analysis. The script's purpose is to process Excel files, categorize transactions based on amount matching, and identify items needing follow-up.
 
 PRODUCT REQUIREMENTS:
-1.  **Core Logic:** Implement the transaction matching logic from the provided script:
-    *   100% match within the same supplier (Green).
-    *   Match with a tolerance of 2 ILS within the same supplier (Orange).
-    *   Global match with a tolerance of 2 ILS across different suppliers (Purple).
-    *   Identify bank transfers that need a corresponding invoice (Blue).
-    *   Identify all other rows that do not fall into any category for Special Handling/Payment (Red).
-2.  **UI/UX:**
-    *   Create a modern UI based on a provided screenshot, using a turquoise color scheme.
-    *   The main screen should allow uploading an Excel file for processing.
-    *   After processing, display statistics for each category in clickable buttons.
-    *   Clicking a category button should expand a details table showing all relevant rows.
-    *   The details table must be filterable (by text, by supplier from a dropdown, by amount from a dropdown) and sortable.
-    *   Change UI labels and titles as requested by the user.
-3.  **Supplier Management:**
-    *   Implement a separate tab for full CRUD (Create, Read, Update, Delete) functionality for a list of suppliers.
-    *   Support bulk import of suppliers from an Excel file.
-    *   Support bulk export of the supplier list to an Excel file.
-    *   Provide a downloadable Excel template for supplier import.
-4.  **File Handling:**
-    *   Allow downloading the fully processed Excel file with colored cells.
-    *   Handle filenames with Hebrew characters correctly.
-5.  **Removed Features:**
-    *   Initially, an N8N integration was implemented but was later removed entirely at the user's request.
+1.  **Core Logic:** Implement the transaction matching logic from the provided script.
+2.  **UI/UX:** Create a modern UI, allow Excel file upload, display categorized statistics, and show details in filterable/sortable tables.
+3.  **Supplier Management:** Implement full CRUD functionality, including bulk import/export from Excel.
+4.  **File Handling:** Allow downloading the processed Excel file with colored cells and correctly handle Hebrew filenames.
+5.  **Email & Actions:**
+    *   Add an actions column to tables for operations like matching, removing, or moving items.
+    *   Implement a feature to generate and send emails for missing invoices.
+    *   Integrate with Microsoft Outlook for sending emails directly from the application using the user's account (OAuth2).
+6.  **State Persistence:** Ensure processing results are not lost on page refresh.
+7.  **Advanced Filtering & Actions:** Implement complex business logic within a new Special Handling/Payment category, including calculated payment dates and generating new documents (PDF/Excel).
 
-**User's preferred language**:
-Hebrew (עברית). The next agent MUST respond in Hebrew.
+**User's preferred language**: Hebrew (עברית). The next agent MUST respond in Hebrew.
 
 **what currently exists?**
-A full-stack application with a React frontend and a FastAPI backend. The application successfully implements most of the user's requirements. It features a main processing tab for Excel file analysis, which displays results in categorized, expandable tables with sorting and filtering. There is also a complete supplier management tab with full CRUD and import/export capabilities. All N8N integration has been removed, and UI/UX has been tailored to the user's specifications.
+A full-stack application with a React frontend and a FastAPI backend. The application successfully implements a wide range of features:
+*   **Core Processing:** Uploading an Excel file, processing it according to the debt aging logic, and displaying statistics for each category.
+*   **Interactive UI:** Statistics are shown on clickable buttons that expand to reveal detailed, sortable, and filterable tables.
+*   **Supplier Management:** A dedicated tab provides full CRUD operations for suppliers, including bulk import/export.
+*   **Email Integration:** A full Microsoft Graph API (OAuth2) integration allows users to connect their Outlook accounts to send emails directly from the app.
+*   **Advanced Actions:**
+    *   A modal allows sending pre-formatted emails to suppliers for missing invoices, consolidating multiple transfers into a single email.
+    *   The Emails to Supplier table is grouped by supplier for clarity.
+    *   Items are automatically removed from lists after an email or WhatsApp message is sent.
+    *   Users can add or update supplier information directly from the email modal.
+*   **State Persistence:** Application state (processed file results) is saved to , so data persists through page refreshes. A Refresh button allows the user to clear the state and start over.
 
 **Last working item**:
-*   **Last item agent was working:** Implementing an advanced amount-based filter in the details table. The user wants to select an amount from a dropdown and have the table show all rows where the absolute value of the amount is within a 2-unit tolerance of the selected amount's absolute value (i.e., ).
+*   **Last item agent was working:** The agent began implementing the second part of a large, multi-step feature request from the user. This part involves creating a detailed, expandable view for the לטיפול מיוחד/תשלום (Special Handling/Payment) category. The agent has already updated the backend to extract the necessary new data columns (, ) from the uploaded Excel file.
 *   **Status:** IN PROGRESS
 *   **Agent Testing Done:** N
-*   **Which testing method agent to use?** Frontend testing agent. The test should verify that after processing a file and expanding a details category, selecting an amount from the new סינון לפי סכום dropdown correctly filters the rows based on the +/- 2 tolerance and absolute value logic.
+*   **Which testing method agent to use?** Frontend testing agent. After the frontend changes are complete, the agent should test the full flow: upload an Excel file containing the new columns, click the Special Handling/Payment button, and verify the details table expands and displays all the new columns correctly.
 *   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-*   **Issue 1 (P0):** Amount filter does not account for tolerance or sign.
-    *   **Description:** The current amount filter performs an exact match. It needs to be updated to match the user's requirement of a 2-unit tolerance and ignoring whether the amount is positive or negative.
-    *   **Attempted fixes:** The agent has added the UI dropdown for amount selection and wired it to a state variable (). The filtering function  in  was updated to perform an exact match.
-    *   **Next debug checklist:**
-        1.  Locate the  constant inside the  component in .
-        2.  Modify the filtering logic that checks for .
-        3.  The current logic is likely .
-        4.  Change it to: .
-        5.  Ensure this logic is only applied when  is not null or empty.
-    *   **Why fix this issue and what will be achieved with the fix?** This will complete a key user requirement, making it much easier to find potential offsetting transactions that are not exact matches.
-    *   **Status:** IN PROGRESS
-    *   **Is recurring issue?** N
-    *   **Should Test frontend/backend/both after fix?** Frontend
-    *   **Blocked on other issue:** None
+*   None. The current work is feature development, not bug fixing.
 
 **In progress Task List**:
-*   **Task 1 (P0):** Complete the implementation of the advanced amount filter.
-    *   **Where to resume:** Resume work in , specifically within the  calculation in the  component.
-    *   **What will be achieved with this?** The application will provide the flexible amount-matching functionality requested by the user, which is critical for the בדיקת ספקים use case.
+*   **Task 1 (P0):** Complete the details view for the Special Handling/Payment category.
+    *   **Where to resume:** .
+    *   **What needs to be done:**
+        1.  Make the לטיפול מיוחד/תשלום button clickable, similar to other category buttons, to toggle the display of a details table.
+        2.  Render the details table for this category, ensuring it includes the newly added columns (, ) alongside the existing ones (, , , ).
+    *   **What will be achieved with this?** This will complete the second major part of the user's new feature request.
     *   **Status:** IN PROGRESS
     *   **Should Test frontend/backend/both after fix?** Frontend
-    *   **Blocked on something:** None
+    *   **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
-*   None have been specified by the user.
+*   **Upcoming Tasks (from user request in message #535):**
+    *   **(P1) Actions for Special Handling:** In the new details view for Special Handling/Payment, implement a dropdown with the following actions:
+        *    (Payment): Generate an Excel/PDF list for payment, with a payment date calculated based on new supplier payment terms.
+        *    (Make Command): Move the selected row to the לעשות פקודה category.
+        *    (Request Account Statement): Create a new category and flow similar to Emails to Supplier but with a different email template. This will require adding a company registration number (ח.פ) field to settings and date range selectors to the email modal.
+    *   **(P2) Enhance Supplier Management:**
+        *   Add a Payment Terms Code () column to the Supplier Management tab and database.
+        *   Implement the logic to calculate the payment date based on this code (e.g., invoice date + 60 days, adjusted to the 10th of the month).
 
 **Completed work in this session**
 *   **Recently completed:**
-    *   **Full Application Build:** Developed a React/FastAPI app from a Python script concept.
-    *   **Supplier Management:** Implemented full CRUD, import/export, and a downloadable template for suppliers in a dedicated tab.
-    *   **Advanced Results View:** Created an interactive results section where categories can be expanded to show a detailed table.
-    *   **Table Functionality:** Added sorting and multi-type filtering (text search, dropdown selection) to the details table.
-    *   **New Data Columns:** Added  and  to the backend processing and frontend details table.
-    *   **UI/UX Refinements:**
-        *   Removed all N8N integration elements.
-        *   Changed UI text and labels as requested (e.g., גיול חובות אוטומטי).
-        *   Implemented the turquoise color theme.
-        *   Added a Special Handling/Payment category for uncategorized rows.
-    *   **Bug Fixes:**
-        *   Resolved a backend route ordering issue ().
-        *   Fixed a  encoding error for filenames with Hebrew characters.
+    *   **Amount Filter Fix:** Implemented the amount filter to work with a +/- 2 tolerance and ignore signs (absolute value).
+    *   **Microsoft OAuth2 Integration:** Fully implemented Microsoft authentication for sending emails via Graph API, including storing credentials and managing the token lifecycle.
+    *   **Email Workflow Enhancements:**
+        *   Consolidated multiple outstanding transfers for the same supplier into a single email.
+        *   Grouped the Emails to Supplier table by supplier.
+        *   Added logic to remove items from the list after an email is sent.
+        *   Allowed highlighting text in the email body (bold, turquoise color).
+    *   **State Persistence:** Added functionality to save processing results in  to survive page refreshes, and added a Refresh button to clear the state.
+    *   **Inline Supplier Management:** Added the ability to create or update a supplier's details directly from the email-sending modal.
+    *   **WhatsApp Flow:** Implemented a confirmation dialog to remove a supplier from the list after a WhatsApp message has been sent.
+    *   **UI/UX:** Added and refined numerous UI elements, including action dropdowns, new buttons, settings fields, and modal enhancements based on user feedback.
 
 **Earlier issues found/mentioned but not fixed**
 *   None.
@@ -92,71 +83,77 @@ A full-stack application with a React frontend and a FastAPI backend. The applic
 
 
 **Key Technical Concepts**
-*   **Frontend:** React, Tailwind CSS, .
-*   **Backend:** FastAPI, Motor (async MongoDB driver), .
-*   **Database:** MongoDB.
-*   **Architecture:** The application consists of a single large frontend component () and a single backend file (), making it a simple but tightly-coupled architecture.
+*   **Frontend:** React, Tailwind CSS, 
+*   **Backend:** FastAPI, Motor (async MongoDB driver), , 
+*   **Database:** MongoDB
+*   **Authentication:** Microsoft OAuth2 for third-party email sending.
+*   **State Management:** React state (, ) combined with browser  for persistence.
 
 **key DB schema**
-*   ** collection:** 
-*   ** collection:** 
+*   : 
+*   : 
+*   : Stores the detailed rows for each category for a given processing ID.
+*   : 
 
 **changes in tech stack**
-*   The project was migrated from a  script concept to a full-stack  +  application.
+*   Added  to the backend for making requests to the Microsoft Graph API.
+*   Implicitly uses  library patterns for handling Microsoft OAuth2 flow.
 
 **All files of reference**
-*   : The heart of the backend. It handles all API logic, database interactions, and the core Excel file processing.
-*   : The heart of the frontend. It contains all UI components, state management, and API call logic for the entire application.
+*   : The monolithic backend file containing all API logic, Excel processing, and the entire Microsoft OAuth2 flow.
+*   : The monolithic frontend file containing all UI components, state management, and logic for the entire application. It has grown significantly and is becoming difficult to manage.
+*   : Now contains critical secrets for the Microsoft OAuth2 integration.
 
 **Areas that need refactoring**:
-*   : This monolithic file (900+ lines) should be broken down into smaller, more manageable components (e.g., , , ) to improve maintainability.
-*   : This file (1000+ lines) could be split. The Excel processing logic () could be moved to a  module, and Pydantic models to a  file.
+*   : This file is now over 2100 lines long. It urgently needs to be broken down into smaller components (e.g., , , , , ) to improve readability and maintainability.
+*   : This file has also grown significantly. The logic for Excel processing, database interactions, and the Microsoft auth flow could be separated into distinct modules.
 
 **key api endpoints**
 *   : Processes the main Excel file.
-*   : Retrieves detailed row data for a specific category from a processed file.
-*   : A full suite of RESTful endpoints for CRUD operations on suppliers.
-*   : Provides an Excel template for suppliers.
-*   : Exports the current supplier list to Excel.
-*   : Bulk imports suppliers from an Excel file.
+*   : Moves a row between categories.
+*   : Deletes a single row from a category's details.
+*   : Deletes all rows for a given supplier from a specific category.
+*   : Initiates the Microsoft OAuth2 login flow.
+*   : The callback URL for the OAuth2 flow.
+*   : Sends an email using the stored user token via Microsoft Graph API.
 
 **Critical Info for New Agent**
-*   You must communicate with the user in **Hebrew**.
-*   The immediate task is to fix the amount filter logic in .
-*   The required logic is .
-*   The frontend is a single large file (), so all changes will be concentrated there.
-*   The user is highly engaged and provides specific feedback. Be prepared to make precise UI and logic adjustments.
+*   **You must communicate with the user in Hebrew.**
+*   The immediate task is to continue the feature implementation started by the previous agent: rendering the details view for the Special Handling/Payment category in . The backend work for this is already done.
+*   The Microsoft OAuth2 integration is live. The credentials are in . The Redirect URI is configured for the preview environment. Any changes to deployment URLs will require updating the Redirect URI in the user's Azure App Registration.
+*   The frontend code in  is extremely long. Use search and view specific line ranges to navigate it effectively. Be very careful when making changes to avoid breaking existing functionality.
 
-**documents and test_reports created in this job**
-*   None
+**documents and test reports created in this job**
+*   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.   (In the filter, add a deviation of up to 2 ILS. For example, if I choose the amount 11,428, the result should also give me the amount 11,427.40, to check if it can be matched).
-2.   (Supplier check - details - filtering by amount should be done by amount regardless of whether it's plus or minus).
-3.   (The details table is missing data: invoice date - just write date instead of invoice date, details, invoice. Regarding filtering - I want a filter like in Excel, a dropdown list with an option to select a specific supplier).
-4.   (Need all the data, also do filtering and sorting).
-5.   (1. Change name - Bank transfers to Bank transfers without invoice. 2. When I open buttons (specific ones), I'm sending you a list [...] a list with data opens below).
-6.   (Special handling - change name to Special handling/payment).
-7.   (Add a button named for special handling - everything that doesn't go into other buttons goes there).
-8.   (Make an option to download a ready file after processing. Make buttons after processing: 100% match (green), 80% match (orange), Supplier check (purple), Bank transfers (blue), Emails to supplier).
-9.   (Trigger for N8N - remove. N8N Integration - remove. The system is connected to N8N for advanced automations... - remove).
-10. 
+1.  **User (P1):** Asks to save processing results until the app is closed or a refresh button is clicked.
+2.  **User (P2):** Asks to make the Special Handling/Payment button expandable to show a details table with specific columns.
+3.  **User (P3):** Details a new dropdown menu for the Special Handling category with options for Payment, Make Command, and Request Account Statement, each with complex sub-requirements.
+4.  **User (P4):** Requests adding Payment Terms to supplier management to calculate payment dates.
+5.  **Agent:** Asks the user to prioritize the list of requests.
+6.  **User:** Prioritizes request #1.
+7.  **Agent:** Completes request #1 (state persistence and refresh button).
+8.  **User:** Confirms to continue to the next task.
+9.  **Agent:** Starts working on request #2 (details for Special Handling).
+10. **Agent:** Updates the backend to extract new data columns needed for request #2.
 
 **Project Health Check:**
-*   **Broken:** The amount filtering logic is not fully implemented as per the latest user request.
+*   **Broken:** The Special Handling/Payment details view is partially implemented (backend is done, frontend is not).
 *   **Mocked:** None.
 
 **3rd Party Integrations**
-*   None.
+*   **Microsoft Graph API:** Used for sending emails via user's Outlook account. Requires user consent via OAuth2 flow.
+*   **openpyxl:** Used for reading/writing Excel files on the backend.
 
 **Testing status**
 *   **Testing agent used after significant changes:** NO
 *   **Troubleshoot agent used after agent stuck in loop:** NO
 *   **Test files created:** None
-*   **Known regressions:** None
+*   **Known regressions:** The linter identified a missing dependency in a  hook in . The agent bypassed this, but it could cause subtle bugs.
 
 **Credentials to test flow:**
-*   None required.
+*   Microsoft OAuth requires user interaction. The , , and  are stored in .
 
 **What agent forgot to execute**
-*   The agent has not yet implemented the core part of the last user request: making the amount filter work with a +/- 2 tolerance and ignoring the sign of the numbers. The UI is in place, but the filtering logic itself is still for an exact match.</analysis>
+*   The agent acknowledged but did not fix a linter warning regarding a missing dependency in a  hook in .</analysis>
