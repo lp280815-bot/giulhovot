@@ -2398,6 +2398,22 @@ const SuppliersTab = () => {
                     data-testid="supplier-email-input"
                   />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">תנאי תשלום</label>
+                  <select
+                    value={formData.payment_terms || ""}
+                    onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#00CDB8] bg-white"
+                    data-testid="supplier-payment-terms-select"
+                  >
+                    <option value="">בחר תנאי תשלום</option>
+                    {paymentTermsOptions.map((opt) => (
+                      <option key={opt.code} value={opt.code}>
+                        {opt.code} - {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="flex gap-3 pt-4">
                 <button
