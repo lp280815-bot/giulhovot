@@ -1533,7 +1533,44 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                                 </>
                               )}
                               <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
-                                {expandedCategory === "special" ? (
+                                {expandedCategory === "ready_payment" ? (
+                                  /* Payment date for ready_payment category */
+                                  (() => {
+                                    // Calculate payment date (same logic as in payment modal)
+                                    const calculatePaymentDate = (invoiceDateStr) => {
+                                      try {
+                                        let invoiceDate;
+                                        if (invoiceDateStr && invoiceDateStr.includes("/")) {
+                                          const [d, m, y] = invoiceDateStr.split("/").map(Number);
+                                          invoiceDate = new Date(y < 100 ? 2000 + y : y, m - 1, d);
+                                        } else if (invoiceDateStr && invoiceDateStr.includes("-")) {
+                                          invoiceDate = new Date(invoiceDateStr);
+                                        } else {
+                                          return "-";
+                                        }
+                                        // Default to שוטף + 30 if no terms
+                                        let paymentMonth = invoiceDate.getMonth() + 2;
+                                        let paymentYear = invoiceDate.getFullYear();
+                                        while (paymentMonth > 11) {
+                                          paymentMonth -= 12;
+                                          paymentYear++;
+                                        }
+                                        const paymentDate = new Date(paymentYear, paymentMonth, 10);
+                                        if (paymentDate < new Date()) {
+                                          paymentDate.setMonth(paymentDate.getMonth() + 1);
+                                        }
+                                        return `${String(paymentDate.getDate()).padStart(2, '0')}/${String(paymentDate.getMonth() + 1).padStart(2, '0')}/${paymentDate.getFullYear()}`;
+                                      } catch {
+                                        return "-";
+                                      }
+                                    };
+                                    return (
+                                      <span className="text-teal-600 font-medium">
+                                        {calculatePaymentDate(row.date)}
+                                      </span>
+                                    );
+                                  })()
+                                ) : expandedCategory === "special" ? (
                                   /* Special actions for לטיפול מיוחד/תשלום */
                                   <select
                                     className="px-2 py-1 border border-red-200 rounded-lg text-sm focus:outline-none focus:border-red-500 bg-white"
@@ -1595,6 +1632,19 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                       </tbody>
                     </table>
                   </div>
+                  
+                  {/* Download Excel Button for Ready Payment */}
+                  {expandedCategory === "ready_payment" && categoryDetails.length > 0 && (
+                    <div className="p-4 border-t border-gray-200 bg-gray-50">
+                      <button
+                        onClick={handleDownloadReadyPaymentExcel}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-teal-500 text-white hover:bg-teal-600 transition-all"
+                      >
+                        <Download size={20} />
+                        <span>הורד לאקסל ({categoryDetails.length} שורות)</span>
+                      </button>
+                    </div>
+                  )}
                   
                   {getFilteredAndSortedDetails().length === 0 && (filters.account || filters.name || filters.amount) && (
                     <div className="text-center py-4 text-gray-500">לא נמצאו תוצאות לסינון הנבחר</div>
