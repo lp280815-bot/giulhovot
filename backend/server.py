@@ -184,6 +184,19 @@ class SendEmailRequest(BaseModel):
     sender_name: Optional[str] = None
 
 
+
+class AppSettings(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    company_email: str = ""
+    signer_name: str = ""
+    company_name: str = ""
+    company_registration: str = ""
+    microsoft_email: str = ""
+    microsoft_name: str = ""
+    custom_signature: str = ""
+
+
+
 # ========= Helper Functions =========
 def parse_amount(val):
     """Convert value to numeric amount (float) with handling for empty and thousands separators."""
