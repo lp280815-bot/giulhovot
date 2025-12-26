@@ -228,6 +228,13 @@ const ProcessingTab = () => {
       transfersList += `${idx + 1}. תאריך: ${r.date} | סכום: ${r.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪\n`;
     });
     
+    // Build signature from custom signature or default
+    const signature = settings.customSignature || `*** אשמח לקבל ${invoiceText} במייל: ${settings.companyEmail} ***
+
+בברכה,
+${settings.signerName}
+${settings.companyName}`;
+    
     // Generate email text with all transfers
     const defaultText = `שלום רב,
 
@@ -241,11 +248,7 @@ const ProcessingTab = () => {
 ${transfersList}
 נבקש לקבל את ה${invoiceText} בהקדם האפשרי לצורך השלמת הרישומים.
 
-*** אשמח לקבל ${invoiceText} במייל: ${settings.companyEmail} ***
-
-בברכה,
-${settings.signerName}
-${settings.companyName}`;
+${signature}`;
     setEmailText(defaultText);
     
     // Fetch supplier info
