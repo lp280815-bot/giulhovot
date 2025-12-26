@@ -992,7 +992,7 @@ async def process_excel(
             "purple": [d.model_dump() for d in details.purple],
             "blue": [d.model_dump() for d in details.blue],
             "emails": [d.model_dump() for d in details.emails],
-            "special": [],  # Will be populated when user moves rows here
+            "special": [d.model_dump() for d in details.special],  # Rows without any match
             "command": [],  # Will be populated when user moves rows here
         }
         await db.processing_details.delete_many({})  # Keep only latest
