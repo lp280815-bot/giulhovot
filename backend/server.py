@@ -172,6 +172,7 @@ class ProcessingDetails(BaseModel):
     blue: List[DetailedRow] = []
     emails: List[DetailedRow] = []
     special: List[DetailedRow] = []
+    ka: List[DetailedRow] = []
 
 class SendEmailRequest(BaseModel):
     sender_email: str
