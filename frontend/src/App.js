@@ -1116,6 +1116,21 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
               <p className="text-xs text-yellow-600 mt-1">(צהוב)</p>
               <ChevronDown size={16} className={`mx-auto mt-2 text-yellow-500 transition-transform ${expandedCategory === "command" ? "rotate-180" : ""}`} />
             </button>
+
+            {/* KA - Gray */}
+            <button
+              onClick={() => handleCategoryClick("ka")}
+              className={`bg-white rounded-2xl border-2 p-4 text-center hover:shadow-lg transition-all cursor-pointer ${
+                expandedCategory === "ka" ? "border-gray-600 shadow-lg ring-2 ring-gray-200" : "border-gray-400"
+              }`}
+            >
+              <div className="w-12 h-12 mx-auto bg-gray-500 rounded-full flex items-center justify-center mb-3">
+                <span className="text-white font-bold text-lg">{stats.ka || 0}</span>
+              </div>
+              <h4 className="font-semibold text-gray-800 text-sm">כ.א</h4>
+              <p className="text-xs text-gray-500 mt-1">(אפור)</p>
+              <ChevronDown size={16} className={`mx-auto mt-2 text-gray-500 transition-transform ${expandedCategory === "ka" ? "rotate-180" : ""}`} />
+            </button>
           </div>
 
           {/* Expanded Details Table */}
