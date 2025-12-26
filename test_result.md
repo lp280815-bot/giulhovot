@@ -171,10 +171,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Special Treatment action dropdown"
-    - "Payment modal"
-    - "Statement request modal"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -182,3 +179,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Implemented P1 features for Special Treatment category. The red category button now has unique action dropdown with 3 options: 1) תשלום - opens payment modal with row selection, generates Excel payment file, 2) לעשות פקודה - moves row to command category (already worked), 3) לבקש כרטסת - opens modal to send statement request email with date range. Backend API /api/generate-payment confirmed working (returns valid xlsx). Testing should: Upload file, click red special button, expand table, select row action dropdown and test each option."
+  - agent: "testing"
+    message: "✅ COMPREHENSIVE TESTING COMPLETED: All 3 special treatment actions are working correctly. 1) Payment modal (BLUE) opens with checkboxes, total calculation, and Excel download functionality. 2) Statement request modal (PURPLE) opens with pre-filled date range and supplier details. 3) Make Command action successfully moves rows from special (5→4) to command (0→1) category. Minor UI issue: Multiple modals can open simultaneously causing overlay interactions, but core functionality works perfectly. Backend API /api/generate-payment confirmed working from logs."
