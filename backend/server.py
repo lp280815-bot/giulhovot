@@ -12,7 +12,7 @@ from typing import List, Optional
 from urllib.parse import quote
 
 import openpyxl
-from openpyxl.styles import PatternFill, Alignment
+from openpyxl.styles import PatternFill, Alignment, Font
 import requests
 import aiofiles
 
