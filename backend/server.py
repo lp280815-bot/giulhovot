@@ -1065,7 +1065,7 @@ async def get_processing_details(category: str):
 @api_router.post("/move-row")
 async def move_row(request: MoveRowRequest):
     """Move a row from one category to another."""
-    valid_categories = ["green", "orange", "purple", "blue", "special", "command", "emails"]
+    valid_categories = ["green", "orange", "purple", "blue", "special", "command", "emails", "ka", "ready_payment"]
     if request.from_category not in valid_categories or request.to_category not in valid_categories:
         raise HTTPException(status_code=400, detail="Invalid category")
     
