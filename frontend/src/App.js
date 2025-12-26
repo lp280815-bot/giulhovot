@@ -2070,39 +2070,7 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                     
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {paymentModal.supplierRows.map((row, idx) => {
-                        // Calculate payment date
-                        const calculatePaymentDate = (invoiceDateStr, termsCode) => {
-                          try {
-                            if (!termsCode) return "-";
-                            const termsMonths = {
-                              "01": 1, "02": 1, "03": 2, "04": 2, "05": 3, "06": 4, "07": 5, "08": 0
-                            };
-                            let invoiceDate;
-                            if (invoiceDateStr.includes("/")) {
-                              const [d, m, y] = invoiceDateStr.split("/").map(Number);
-                              invoiceDate = new Date(y < 100 ? 2000 + y : y, m - 1, d);
-                            } else if (invoiceDateStr.includes("-")) {
-                              invoiceDate = new Date(invoiceDateStr);
-                            } else {
-                              return "-";
-                            }
-                            const monthsToAdd = termsMonths[termsCode] || 1;
-                            let paymentMonth = invoiceDate.getMonth() + monthsToAdd;
-                            let paymentYear = invoiceDate.getFullYear();
-                            while (paymentMonth > 11) {
-                              paymentMonth -= 12;
-                              paymentYear++;
-                            }
-                            const paymentDate = new Date(paymentYear, paymentMonth, 10);
-                            if (paymentDate < new Date()) {
-                              paymentDate.setMonth(paymentDate.getMonth() + 1);
-                            }
-                            return `${String(paymentDate.getDate()).padStart(2, '0')}/${String(paymentDate.getMonth() + 1).padStart(2, '0')}/${paymentDate.getFullYear()}`;
-                          } catch {
-                            return "-";
-                          }
-                        };
-                        
+                        // Use global calculatePaymentDate function
                         return (
                           <label 
                             key={idx}
