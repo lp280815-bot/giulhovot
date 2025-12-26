@@ -644,7 +644,16 @@ ${settings.companyName}`;
       // Store file for download
       const url = window.URL.createObjectURL(new Blob([response.data]));
       setProcessedFileUrl(url);
-      setProcessedFileName(`מעובד_${mainFile.name}`);
+      const fileName = `מעובד_${mainFile.name}`;
+      setProcessedFileName(fileName);
+
+      // Save results to localStorage
+      localStorage.setItem("processingResults", JSON.stringify({
+        stats: newStats,
+        processedFileUrl: url,
+        processedFileName: fileName,
+        savedAt: new Date().toISOString()
+      }));
 
     } catch (err) {
       console.error(err);
@@ -673,6 +682,20 @@ ${settings.companyName}`;
     document.body.appendChild(link);
     link.click();
     link.remove();
+  };
+
+  // Clear all results and localStorage
+  const handleRefresh = () => {
+    if (window.confirm("האם לנקות את כל התוצאות?")) {
+      setMainFile(null);
+      setStats(null);
+      setProcessedFileUrl(null);
+      setProcessedFileName("");
+      setExpandedCategory(null);
+      setCategoryDetails([]);
+      setError(null);
+      localStorage.removeItem("processingResults");
+    }
   };
 
   const handleReset = () => {
