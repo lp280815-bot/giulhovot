@@ -1379,8 +1379,14 @@ async def export_ready_payment(request: ExportReadyPaymentRequest):
             cell.fill = header_fill
             cell.alignment = header_alignment
         
-        # Calculate payment date
-        def calculate_payment_date(invoice_date_str):
+        # Payment terms mapping
+        payment_terms_map = {
+            "01": 1, "02": 1, "03": 2, "04": 2,
+            "05": 3, "06": 4, "07": 5, "08": 0
+        }
+        
+        # Calculate payment date using row's payment_terms
+        def calculate_payment_date(invoice_date_str, terms_code):
             try:
                 if "/" in str(invoice_date_str):
                     parts = str(invoice_date_str).split("/")
@@ -1396,8 +1402,9 @@ async def export_ready_payment(request: ExportReadyPaymentRequest):
                 else:
                     return ""
                 
-                # Default: שוטף + 30 (2 months)
-                payment_month = invoice_date.month + 2
+                # Use stored terms or default to שוטף + 30 (code 03)
+                months_to_add = payment_terms_map.get(terms_code, 2)
+                payment_month = invoice_date.month + months_to_add
                 payment_year = invoice_date.year
                 while payment_month > 12:
                     payment_month -= 12
