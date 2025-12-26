@@ -573,6 +573,27 @@ ${signaturePart}`;
     }
   };
 
+  // Download Ready Payment as Excel
+  const handleDownloadReadyPaymentExcel = async () => {
+    try {
+      const response = await axios.post(`${API}/export-ready-payment`, {
+        rows: categoryDetails
+      }, { responseType: 'blob' });
+      
+      // Download the file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `מוכן_לתשלום_${new Date().toLocaleDateString('he-IL')}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Error downloading ready payment Excel:", err);
+      alert("שגיאה בהורדת הקובץ");
+    }
+  };
+
   // Handle request statement action - open statement modal
   const handleRequestStatement = async (row, rowIndex) => {
     // Close other modals first
