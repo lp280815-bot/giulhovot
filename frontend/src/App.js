@@ -3033,29 +3033,62 @@ const SettingsTab = () => {
 
 // Email Settings Component
 const EmailSettingsSection = () => {
-  // Initialize state with localStorage value directly
-  const getInitialSettings = () => {
-    const stored = localStorage.getItem("emailSettings");
-    if (stored) {
-      return JSON.parse(stored);
-    }
-    return {
-      companyEmail: "office@ilang.co.il",
-      signerName: "ילנה זמליאנסקי",
-      companyName: "אילן גינון ופיתוח בע\"מ",
-      companyRegistration: "",
-      microsoftEmail: "",
-      microsoftName: "",
-      customSignature: ""
-    };
-  };
-  
-  const [settings, setSettings] = useState(getInitialSettings);
+  // Initialize state with default values
+  const [settings, setSettings] = useState({
+    companyEmail: "office@ilang.co.il",
+    signerName: "ילנה זמליאנסקי",
+    companyName: "אילן גינון ופיתוח בע\"מ",
+    companyRegistration: "",
+    microsoftEmail: "",
+    microsoftName: "",
+    customSignature: ""
+  });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [microsoftConnected, setMicrosoftConnected] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [editingSignature, setEditingSignature] = useState(false);
   const [signatureText, setSignatureText] = useState("");
+
+  // Load settings from database on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await axios.get(`${API}/settings`);
+        const dbSettings = response.data;
+        setSettings({
+          companyEmail: dbSettings.company_email || "office@ilang.co.il",
+          signerName: dbSettings.signer_name || "ילנה זמליאנסקי",
+          companyName: dbSettings.company_name || "אילן גינון ופיתוח בע\"מ",
+          companyRegistration: dbSettings.company_registration || "",
+          microsoftEmail: dbSettings.microsoft_email || "",
+          microsoftName: dbSettings.microsoft_name || "",
+          customSignature: dbSettings.custom_signature || ""
+        });
+        // Also update localStorage for backward compatibility
+        localStorage.setItem("emailSettings", JSON.stringify({
+          companyEmail: dbSettings.company_email || "office@ilang.co.il",
+          signerName: dbSettings.signer_name || "ילנה זמליאנסקי",
+          companyName: dbSettings.company_name || "אילן גינון ופיתוח בע\"מ",
+          companyRegistration: dbSettings.company_registration || "",
+          microsoftEmail: dbSettings.microsoft_email || "",
+          microsoftName: dbSettings.microsoft_name || "",
+          customSignature: dbSettings.custom_signature || ""
+        }));
+      } catch (err) {
+        console.error("Error loading settings:", err);
+        // Fall back to localStorage if DB fails
+        const stored = localStorage.getItem("emailSettings");
+        if (stored) {
+          setSettings(JSON.parse(stored));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSettings();
+  }, []);
 
   // Check Microsoft auth status on mount and handle callback
   useEffect(() => {
@@ -3068,13 +3101,29 @@ const EmailSettingsSection = () => {
       const authError = urlParams.get('auth_error');
       
       if (authSuccess && authEmail) {
-        // Save to localStorage and state
+        // Save to database and state
         const newSettings = {
           ...settings,
           microsoftEmail: authEmail,
           microsoftName: authName || ""
         };
         setSettings(newSettings);
+        
+        // Save to database
+        try {
+          await axios.post(`${API}/settings`, {
+            company_email: newSettings.companyEmail,
+            signer_name: newSettings.signerName,
+            company_name: newSettings.companyName,
+            company_registration: newSettings.companyRegistration,
+            microsoft_email: authEmail,
+            microsoft_name: authName || "",
+            custom_signature: newSettings.customSignature
+          });
+        } catch (err) {
+          console.error("Error saving Microsoft auth:", err);
+        }
+        
         localStorage.setItem("emailSettings", JSON.stringify(newSettings));
         setMicrosoftConnected(true);
         
@@ -3090,14 +3139,13 @@ const EmailSettingsSection = () => {
       }
       
       // Check if already connected
-      const currentSettings = getInitialSettings();
-      if (currentSettings.microsoftEmail) {
+      if (settings.microsoftEmail) {
         try {
-          const response = await axios.get(`${API}/auth/microsoft/status?email=${encodeURIComponent(currentSettings.microsoftEmail)}`);
+          const response = await axios.get(`${API}/auth/microsoft/status?email=${encodeURIComponent(settings.microsoftEmail)}`);
           setMicrosoftConnected(response.data.authenticated);
           if (!response.data.authenticated) {
             // Clear saved email if not authenticated
-            const clearedSettings = { ...currentSettings, microsoftEmail: "", microsoftName: "" };
+            const clearedSettings = { ...settings, microsoftEmail: "", microsoftName: "" };
             setSettings(clearedSettings);
             localStorage.setItem("emailSettings", JSON.stringify(clearedSettings));
           }
@@ -3108,14 +3156,37 @@ const EmailSettingsSection = () => {
       setCheckingAuth(false);
     };
     
-    checkAuthAndHandleCallback();
+    if (!loading) {
+      checkAuthAndHandleCallback();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loading, settings.microsoftEmail]);
 
-  const handleSave = () => {
-    localStorage.setItem("emailSettings", JSON.stringify(settings));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Save to database
+      await axios.post(`${API}/settings`, {
+        company_email: settings.companyEmail,
+        signer_name: settings.signerName,
+        company_name: settings.companyName,
+        company_registration: settings.companyRegistration,
+        microsoft_email: settings.microsoftEmail,
+        microsoft_name: settings.microsoftName,
+        custom_signature: settings.customSignature
+      });
+      
+      // Also save to localStorage for backward compatibility
+      localStorage.setItem("emailSettings", JSON.stringify(settings));
+      
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      alert("שגיאה בשמירת ההגדרות");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleMicrosoftLogin = async () => {
