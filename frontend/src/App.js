@@ -2538,7 +2538,8 @@ const EmailSettingsSection = () => {
       signerName: "ילנה זמליאנסקי",
       companyName: "אילן גינון ופיתוח בע\"מ",
       microsoftEmail: "",
-      microsoftName: ""
+      microsoftName: "",
+      customSignature: ""
     };
   };
   
@@ -2546,6 +2547,8 @@ const EmailSettingsSection = () => {
   const [saved, setSaved] = useState(false);
   const [microsoftConnected, setMicrosoftConnected] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [editingSignature, setEditingSignature] = useState(false);
+  const [signatureText, setSignatureText] = useState("");
 
   // Check Microsoft auth status on mount and handle callback
   useEffect(() => {
