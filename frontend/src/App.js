@@ -609,27 +609,33 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
         body: body
       });
       
-      // Delete the row from special category after successful send
+      // Delete ALL rows for this supplier from special category after successful send
       try {
-        await axios.post(`${API}/delete-row`, {
-          from_category: "special",
-          row_data: statementModal.row
+        // Count how many rows belong to this supplier
+        const supplierRowsCount = categoryDetails.filter(r => 
+          r.name === statementModal.row.name || r.account === statementModal.row.account
+        ).length;
+        
+        await axios.delete(`${API}/delete-supplier-rows`, {
+          data: {
+            category: "special",
+            supplier_name: statementModal.row.name,
+            supplier_account: statementModal.row.account
+          }
         });
         
-        // Update local state - remove the row
+        // Update local state - remove ALL rows for this supplier
         setCategoryDetails(prev => prev.filter(r => 
-          !(r.account === statementModal.row.account && 
-            r.name === statementModal.row.name &&
-            Math.abs(r.amount - statementModal.row.amount) < 0.01)
+          !(r.name === statementModal.row.name || r.account === statementModal.row.account)
         ));
         
-        // Update stats
+        // Update stats - decrease by the number of rows deleted
         setStats(prev => ({
           ...prev,
-          special: Math.max(0, (prev.special || 0) - 1)
+          special: Math.max(0, (prev.special || 0) - supplierRowsCount)
         }));
       } catch (deleteErr) {
-        console.error("Error deleting row after statement request:", deleteErr);
+        console.error("Error deleting supplier rows after statement request:", deleteErr);
       }
       
       alert("בקשת הכרטסת נשלחה בהצלחה!");
