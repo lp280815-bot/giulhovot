@@ -1048,8 +1048,8 @@ async def process_excel(
 
 @api_router.get("/processing-details/{category}")
 async def get_processing_details(category: str):
-    """Get detailed rows for a specific category (green, orange, purple, blue, special, command, emails)."""
-    if category not in ["green", "orange", "purple", "blue", "special", "command", "emails"]:
+    """Get detailed rows for a specific category (green, orange, purple, blue, special, command, emails, ka)."""
+    if category not in ["green", "orange", "purple", "blue", "special", "command", "emails", "ka"]:
         raise HTTPException(status_code=400, detail="Invalid category")
     
     details = await db.processing_details.find_one({}, {"_id": 0})
