@@ -594,8 +594,9 @@ def process_workbook(wb, email_mapping=None):
     # Count total rows
     stats.total_rows = ws.max_row - header_row
 
-    # Calculate special treatment (rows without any color)
+    # Calculate special treatment (rows without any color) and save their details
     unmatched_count = 0
+    special_rows = []
     for row in ws.iter_rows(min_row=data_start_row):
         cell = row[col_amt - 1]
         if not has_any_color(cell):
@@ -604,9 +605,14 @@ def process_workbook(wb, email_mapping=None):
                 v = parse_amount(cell.value)
                 if v != 0:
                     unmatched_count += 1
+                    # Save the row details to special category
+                    special_rows.append(extract_row_data(row))
             except Exception:
                 pass
     stats.special_treatment = unmatched_count
+    
+    # Add special rows to details (will be saved to DB)
+    details.special = special_rows
 
     return wb, stats, details
 
