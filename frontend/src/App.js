@@ -3203,6 +3203,18 @@ const EmailSettingsSection = () => {
       await axios.post(`${API}/auth/microsoft/logout?email=${encodeURIComponent(settings.microsoftEmail)}`);
       const newSettings = { ...settings, microsoftEmail: "", microsoftName: "" };
       setSettings(newSettings);
+      
+      // Save to database
+      await axios.post(`${API}/settings`, {
+        company_email: newSettings.companyEmail,
+        signer_name: newSettings.signerName,
+        company_name: newSettings.companyName,
+        company_registration: newSettings.companyRegistration,
+        microsoft_email: "",
+        microsoft_name: "",
+        custom_signature: newSettings.customSignature
+      });
+      
       localStorage.setItem("emailSettings", JSON.stringify(newSettings));
       setMicrosoftConnected(false);
     } catch (err) {
