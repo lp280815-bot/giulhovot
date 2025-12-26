@@ -1161,6 +1161,7 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                 expandedCategory === "special" ? "bg-red-500" :
                 expandedCategory === "emails" ? "bg-[#00CDB8]" :
                 expandedCategory === "ka" ? "bg-gray-500" :
+                expandedCategory === "ready_payment" ? "bg-teal-500" :
                 "bg-yellow-500"
               }`}>
                 <span>
