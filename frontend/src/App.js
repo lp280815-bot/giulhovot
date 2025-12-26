@@ -548,7 +548,8 @@ ${settings.companyName}`;
       const fromDate = new Date(statementDateFrom).toLocaleDateString('he-IL');
       const toDate = new Date(statementDateTo).toLocaleDateString('he-IL');
       
-      const subject = `בקשה לכרטסת חשבון - ${statementModal.row.name}`;
+      // Updated subject and body format
+      const subject = `בקשה לכרטסת - ${statementModal.row.name}`;
       const body = `שלום רב,
 
 נבקש לקבל כרטסת חשבון עבור התקופה:
@@ -557,15 +558,14 @@ ${settings.companyName}`;
 
 פרטי חשבון:
 שם ספק: ${statementModal.row.name}
-מספר חשבון: ${statementModal.row.account}
-${settings.companyRegistration ? `ח.פ: ${settings.companyRegistration}` : ''}
 
-נודה לקבלת הכרטסת במייל חוזר.
+נבקש לקבל את הכרטסת בהקדם האפשרי לצורך השלמת הרישומים.
+
+*** אשמח לקבל חשבוניות במייל: ${settings.companyEmail} ***
 
 בברכה,
 ${settings.signerName}
-${settings.companyName}
-${settings.companyEmail}`;
+${settings.companyName}`;
 
       await axios.post(`${API}/send-email-microsoft`, {
         sender_email: settings.microsoftEmail,
@@ -573,6 +573,29 @@ ${settings.companyEmail}`;
         subject: subject,
         body: body
       });
+      
+      // Delete the row from special category after successful send
+      try {
+        await axios.post(`${API}/delete-row`, {
+          from_category: "special",
+          row_data: statementModal.row
+        });
+        
+        // Update local state - remove the row
+        setCategoryDetails(prev => prev.filter(r => 
+          !(r.account === statementModal.row.account && 
+            r.name === statementModal.row.name &&
+            Math.abs(r.amount - statementModal.row.amount) < 0.01)
+        ));
+        
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          special: Math.max(0, (prev.special || 0) - 1)
+        }));
+      } catch (deleteErr) {
+        console.error("Error deleting row after statement request:", deleteErr);
+      }
       
       alert("בקשת הכרטסת נשלחה בהצלחה!");
       setStatementModal(null);
