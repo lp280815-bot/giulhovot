@@ -487,7 +487,8 @@ ${signaturePart}`;
       
       const response = await axios.post(`${API}/generate-payment`, {
         rows: rowsToPayment,
-        supplier_name: paymentModal.row.name
+        supplier_name: paymentModal.row.name,
+        payment_terms: paymentModal.paymentTerms || ""
       }, { responseType: 'blob' });
       
       // Download the file
