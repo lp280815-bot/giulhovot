@@ -709,11 +709,13 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
         else if (expandedCategory === "blue") newStats.blue--;
         else if (expandedCategory === "special") newStats.special--;
         else if (expandedCategory === "command") newStats.command--;
+        else if (expandedCategory === "ka") newStats.ka--;
         else if (expandedCategory === "emails") newStats.emails--;
         
         // Increase target count
         if (toCategory === "special") newStats.special++;
         else if (toCategory === "command") newStats.command = (newStats.command || 0) + 1;
+        else if (toCategory === "ka") newStats.ka = (newStats.ka || 0) + 1;
         else if (toCategory === "emails") newStats.emails++;
         
         return newStats;
