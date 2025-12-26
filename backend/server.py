@@ -153,6 +153,8 @@ class MoveRowRequest(BaseModel):
 
 class DetailedRow(BaseModel):
     account: str = ""
+    account_description: str = ""  # תאור חשבון
+    supplier_account: str = ""  # חש. ספק
     name: str = ""
     amount: float = 0
     date: str = ""
