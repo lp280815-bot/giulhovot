@@ -2716,7 +2716,7 @@ const EmailSettingsSection = () => {
           <p className="text-xs text-gray-500 mt-1">המייל שיופיע בהודעה לספק</p>
         </div>
         
-        <div className="md:col-span-2">
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">שם החברה</label>
           <input
             type="text"
@@ -2725,6 +2725,18 @@ const EmailSettingsSection = () => {
             className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8]"
             placeholder="שם החברה"
           />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">ח.פ (מספר חברה)</label>
+          <input
+            type="text"
+            value={settings.companyRegistration || ""}
+            onChange={(e) => setSettings({...settings, companyRegistration: e.target.value})}
+            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#00CDB8]"
+            placeholder="123456789"
+          />
+          <p className="text-xs text-gray-500 mt-1">יופיע בבקשת כרטסת</p>
         </div>
       </div>
       
