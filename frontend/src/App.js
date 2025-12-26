@@ -3369,9 +3369,25 @@ ${settings.companyName}`;
           ) : (
             <div className="flex gap-2">
               <button
-                onClick={() => {
+                onClick={async () => {
                   const newSettings = { ...settings, customSignature: signatureText };
                   setSettings(newSettings);
+                  
+                  // Save to database
+                  try {
+                    await axios.post(`${API}/settings`, {
+                      company_email: newSettings.companyEmail,
+                      signer_name: newSettings.signerName,
+                      company_name: newSettings.companyName,
+                      company_registration: newSettings.companyRegistration,
+                      microsoft_email: newSettings.microsoftEmail,
+                      microsoft_name: newSettings.microsoftName,
+                      custom_signature: signatureText
+                    });
+                  } catch (err) {
+                    console.error("Error saving signature:", err);
+                  }
+                  
                   localStorage.setItem("emailSettings", JSON.stringify(newSettings));
                   setEditingSignature(false);
                   setSaved(true);
@@ -3415,9 +3431,25 @@ ${settings.companyName}`}
         
         {!editingSignature && settings.customSignature && (
           <button
-            onClick={() => {
+            onClick={async () => {
               const newSettings = { ...settings, customSignature: "" };
               setSettings(newSettings);
+              
+              // Save to database
+              try {
+                await axios.post(`${API}/settings`, {
+                  company_email: newSettings.companyEmail,
+                  signer_name: newSettings.signerName,
+                  company_name: newSettings.companyName,
+                  company_registration: newSettings.companyRegistration,
+                  microsoft_email: newSettings.microsoftEmail,
+                  microsoft_name: newSettings.microsoftName,
+                  custom_signature: ""
+                });
+              } catch (err) {
+                console.error("Error resetting signature:", err);
+              }
+              
               localStorage.setItem("emailSettings", JSON.stringify(newSettings));
             }}
             className="mt-2 text-xs text-red-500 hover:text-red-700"
