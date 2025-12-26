@@ -1388,7 +1388,7 @@ async def export_ready_payment(request: ExportReadyPaymentRequest):
             cell.fill = header_fill
             cell.alignment = header_alignment
         
-        # Payment terms mapping
+        # Payment terms mapping: code -> months to add to invoice date
         payment_terms_map = {
             "01": 1, "02": 1, "03": 2, "04": 2,
             "05": 3, "06": 4, "07": 5, "08": 0
@@ -1396,7 +1396,16 @@ async def export_ready_payment(request: ExportReadyPaymentRequest):
         
         # Calculate payment date using row's payment_terms
         def calculate_payment_date(invoice_date_str, terms_code):
+            """
+            חישוב תאריך תשלום:
+            1. תאריך חשבונית + תנאי תשלום = תאריך בסיס
+            2. התשלום תמיד ב-10 לחודש
+            3. אם ה-10 כבר עבר - מעבירים לחודש הבא
+            """
             try:
+                today = datetime.now()
+                today = today.replace(hour=0, minute=0, second=0, microsecond=0)
+                
                 if "/" in str(invoice_date_str):
                     parts = str(invoice_date_str).split("/")
                     if len(parts) == 3:
@@ -1411,17 +1420,19 @@ async def export_ready_payment(request: ExportReadyPaymentRequest):
                 else:
                     return ""
                 
-                # Use stored terms or default to שוטף + 30 (code 03)
-                months_to_add = payment_terms_map.get(terms_code, 2)
+                # Step 1: Invoice date + payment terms = base date
+                months_to_add = payment_terms_map.get(terms_code, 1)  # default: 1 month (שוטף)
                 payment_month = invoice_date.month + months_to_add
                 payment_year = invoice_date.year
                 while payment_month > 12:
                     payment_month -= 12
                     payment_year += 1
+                
+                # Step 2: Payment is always on the 10th
                 payment_date = datetime(payment_year, payment_month, 10)
                 
-                # If payment date has passed, move to next month
-                if payment_date < datetime.now():
+                # Step 3: If the 10th has already passed, move to next month
+                if payment_date < today:
                     payment_month += 1
                     if payment_month > 12:
                         payment_month = 1
