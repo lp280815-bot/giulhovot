@@ -1847,33 +1847,137 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                 
                 {/* Content */}
                 <div className="p-6 space-y-6">
+                  {/* Supplier Info with Payment Terms */}
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-semibold text-gray-700 mb-3">ספק: {paymentModal.row.name}</h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-700">ספק: {paymentModal.row.name}</h4>
+                      <div className="flex items-center gap-2">
+                        {paymentModal.paymentTerms ? (
+                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                            תנאי תשלום: {
+                              paymentModal.paymentTerms === "01" ? "שוטף" :
+                              paymentModal.paymentTerms === "02" ? "שוטף + 15" :
+                              paymentModal.paymentTerms === "03" ? "שוטף + 30" :
+                              paymentModal.paymentTerms === "04" ? "שוטף + 45" :
+                              paymentModal.paymentTerms === "05" ? "שוטף + 60" :
+                              paymentModal.paymentTerms === "06" ? "שוטף + 90" :
+                              paymentModal.paymentTerms === "07" ? "שוטף + 120" :
+                              paymentModal.paymentTerms === "08" ? "מזומן" :
+                              paymentModal.paymentTerms
+                            }
+                          </span>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-orange-600">⚠️ לא מוגדר</span>
+                            <select
+                              onChange={async (e) => {
+                                if (e.target.value) {
+                                  try {
+                                    // Update supplier with payment terms
+                                    await axios.put(`${API}/suppliers/by-account/${paymentModal.row.account}`, {
+                                      payment_terms: e.target.value
+                                    });
+                                    setPaymentModal({...paymentModal, paymentTerms: e.target.value});
+                                  } catch (err) {
+                                    // Try to create new supplier
+                                    try {
+                                      await axios.post(`${API}/suppliers`, {
+                                        account_number: String(paymentModal.row.account),
+                                        name: paymentModal.row.name,
+                                        payment_terms: e.target.value
+                                      });
+                                      setPaymentModal({...paymentModal, paymentTerms: e.target.value});
+                                    } catch (err2) {
+                                      console.error("Error updating payment terms:", err2);
+                                    }
+                                  }
+                                }
+                              }}
+                              className="px-2 py-1 border border-orange-200 rounded text-sm bg-white"
+                              defaultValue=""
+                            >
+                              <option value="" disabled>הוסף תנאי תשלום</option>
+                              <option value="01">שוטף</option>
+                              <option value="02">שוטף + 15</option>
+                              <option value="03">שוטף + 30</option>
+                              <option value="04">שוטף + 45</option>
+                              <option value="05">שוטף + 60</option>
+                              <option value="06">שוטף + 90</option>
+                              <option value="07">שוטף + 120</option>
+                              <option value="08">מזומן</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
                     <p className="text-sm text-gray-500 mb-4">בחר את השורות לתשלום:</p>
                     
                     <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {paymentModal.supplierRows.map((row, idx) => (
-                        <label 
-                          key={idx}
-                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                            selectedForPayment.includes(idx) ? 'bg-blue-50 border border-blue-200' : 'bg-white border border-gray-200'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedForPayment.includes(idx)}
-                            onChange={() => togglePaymentSelection(idx)}
-                            className="w-4 h-4 text-blue-600"
-                          />
-                          <div className="flex-1 flex justify-between items-center text-sm">
-                            <span>{row.account} - {row.details || row.name}</span>
-                            <span className={`font-medium ${row.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪
-                            </span>
-                          </div>
-                          <span className="text-xs text-gray-400">{row.date}</span>
-                        </label>
-                      ))}
+                      {paymentModal.supplierRows.map((row, idx) => {
+                        // Calculate payment date
+                        const calculatePaymentDate = (invoiceDateStr, termsCode) => {
+                          try {
+                            if (!termsCode) return "-";
+                            const termsMonths = {
+                              "01": 1, "02": 1, "03": 2, "04": 2, "05": 3, "06": 4, "07": 5, "08": 0
+                            };
+                            let invoiceDate;
+                            if (invoiceDateStr.includes("/")) {
+                              const [d, m, y] = invoiceDateStr.split("/").map(Number);
+                              invoiceDate = new Date(y < 100 ? 2000 + y : y, m - 1, d);
+                            } else if (invoiceDateStr.includes("-")) {
+                              invoiceDate = new Date(invoiceDateStr);
+                            } else {
+                              return "-";
+                            }
+                            const monthsToAdd = termsMonths[termsCode] || 1;
+                            let paymentMonth = invoiceDate.getMonth() + monthsToAdd;
+                            let paymentYear = invoiceDate.getFullYear();
+                            while (paymentMonth > 11) {
+                              paymentMonth -= 12;
+                              paymentYear++;
+                            }
+                            const paymentDate = new Date(paymentYear, paymentMonth, 10);
+                            if (paymentDate < new Date()) {
+                              paymentDate.setMonth(paymentDate.getMonth() + 1);
+                            }
+                            return `${String(paymentDate.getDate()).padStart(2, '0')}/${String(paymentDate.getMonth() + 1).padStart(2, '0')}/${paymentDate.getFullYear()}`;
+                          } catch {
+                            return "-";
+                          }
+                        };
+                        
+                        return (
+                          <label 
+                            key={idx}
+                            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                              selectedForPayment.includes(idx) ? 'bg-blue-50 border border-blue-200' : 'bg-white border border-gray-200'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedForPayment.includes(idx)}
+                              onChange={() => togglePaymentSelection(idx)}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <div className="flex-1">
+                              <div className="flex justify-between items-center text-sm">
+                                <span>{row.account} - {row.details || row.name}</span>
+                                <span className={`font-medium ${row.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {row.amount?.toLocaleString("he-IL", { minimumFractionDigits: 2 })} ₪
+                                </span>
+                              </div>
+                              <div className="flex gap-4 mt-1 text-xs">
+                                <span className="text-gray-400">חשבונית: {row.date}</span>
+                                <span className="text-blue-500 font-medium">
+                                  תשלום: {calculatePaymentDate(row.date, paymentModal.paymentTerms)}
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })}
                     </div>
                     
                     {/* Total */}
@@ -1888,25 +1992,25 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                     </div>
                   </div>
                   
-                  {/* Action Button */}
+                  {/* Action Button - Move to Ready for Payment */}
                   <button
-                    onClick={handleGeneratePayment}
+                    onClick={handleMoveToReadyPayment}
                     disabled={selectedForPayment.length === 0 || generatingPayment}
                     className={`w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold transition-all ${
                       selectedForPayment.length > 0 && !generatingPayment
-                        ? "bg-blue-600 text-white hover:bg-blue-700" 
+                        ? "bg-teal-500 text-white hover:bg-teal-600" 
                         : "bg-gray-200 text-gray-400 cursor-not-allowed"
                     }`}
                   >
                     {generatingPayment ? (
                       <>
                         <Loader2 size={20} className="animate-spin" />
-                        <span>מייצר קובץ...</span>
+                        <span>מעביר...</span>
                       </>
                     ) : (
                       <>
-                        <Download size={20} />
-                        <span>הורד רשימת תשלום (Excel)</span>
+                        <Check size={20} />
+                        <span>העבר למוכן לתשלום ({selectedForPayment.length})</span>
                       </>
                     )}
                   </button>
