@@ -6,6 +6,63 @@ import { Upload, FileSpreadsheet, Users, Settings, Zap, Building2, FileText, Dow
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+/**
+ * חישוב תאריך תשלום אוניברסלי
+ * לוגיקה:
+ * 1. תאריך חשבונית + תנאי תשלום = תאריך בסיס
+ * 2. התשלום תמיד ב-10 לחודש
+ * 3. אם ה-10 כבר עבר - מעבירים לחודש הבא
+ */
+const calculatePaymentDate = (invoiceDateStr, termsCode) => {
+  try {
+    // Payment terms: code -> months to add to invoice date
+    const termsMonths = {
+      "01": 1,  // שוטף
+      "02": 1,  // שוטף + 15
+      "03": 2,  // שוטף + 30
+      "04": 2,  // שוטף + 45
+      "05": 3,  // שוטף + 60
+      "06": 4,  // שוטף + 90
+      "07": 5,  // שוטף + 120
+      "08": 0   // מזומן
+    };
+
+    // Parse invoice date
+    let invoiceDate;
+    if (invoiceDateStr && invoiceDateStr.includes("/")) {
+      const [d, m, y] = invoiceDateStr.split("/").map(Number);
+      invoiceDate = new Date(y < 100 ? 2000 + y : y, m - 1, d);
+    } else if (invoiceDateStr && invoiceDateStr.includes("-")) {
+      invoiceDate = new Date(invoiceDateStr);
+    } else {
+      return "-";
+    }
+
+    // Step 1: Invoice date + payment terms = base date
+    const monthsToAdd = termsMonths[termsCode] ?? 1; // default: 1 month
+    let baseMonth = invoiceDate.getMonth() + monthsToAdd;
+    let baseYear = invoiceDate.getFullYear();
+    while (baseMonth > 11) {
+      baseMonth -= 12;
+      baseYear++;
+    }
+
+    // Step 2: Payment is always on the 10th
+    let paymentDate = new Date(baseYear, baseMonth, 10);
+
+    // Step 3: If the 10th has already passed, move to next month
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (paymentDate < today) {
+      paymentDate.setMonth(paymentDate.getMonth() + 1);
+    }
+
+    return `${String(paymentDate.getDate()).padStart(2, '0')}/${String(paymentDate.getMonth() + 1).padStart(2, '0')}/${paymentDate.getFullYear()}`;
+  } catch {
+    return "-";
+  }
+};
+
 // Navigation Tabs
 const NavTabs = ({ activeTab, setActiveTab }) => {
   const tabs = [
