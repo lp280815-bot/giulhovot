@@ -1413,14 +1413,24 @@ ${settings.companyName}`;
 
           {/* Download Button */}
           <div className="flex flex-col items-center gap-4 pt-4">
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-3 bg-[#00CDB8] text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-[#00B5A3] shadow-lg hover:shadow-xl transition-all"
-              data-testid="download-btn"
-            >
-              <Download size={24} />
-              <span>הורד קובץ מעובד</span>
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-3 bg-[#00CDB8] text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-[#00B5A3] shadow-lg hover:shadow-xl transition-all"
+                data-testid="download-btn"
+              >
+                <Download size={24} />
+                <span>הורד קובץ מעובד</span>
+              </button>
+              <button
+                onClick={handleRefresh}
+                className="flex items-center gap-3 bg-red-500 text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-red-600 shadow-lg hover:shadow-xl transition-all"
+                title="נקה את כל התוצאות"
+              >
+                <RefreshCw size={24} />
+                <span>רענון</span>
+              </button>
+            </div>
             <button
               onClick={handleReset}
               className="text-gray-500 hover:text-gray-700 text-sm flex items-center gap-2"
