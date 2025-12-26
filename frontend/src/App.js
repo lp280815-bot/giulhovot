@@ -1454,9 +1454,15 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                               )}
                             </>
                           )}
-                          <th className="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">
-                            פעולה
-                          </th>
+                          {expandedCategory === "ready_payment" ? (
+                            <th className="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">
+                              תאריך תשלום
+                            </th>
+                          ) : (
+                            <th className="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">
+                              פעולה
+                            </th>
+                          )}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
