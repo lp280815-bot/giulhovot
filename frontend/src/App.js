@@ -11,7 +11,7 @@ const API = `${BACKEND_URL}/api`;
  * לוגיקה:
  * 1. תאריך חשבונית + תנאי תשלום = תאריך בסיס
  * 2. התשלום תמיד ב-10 לחודש
- * 3. אם ה-10 כבר עבר - מעבירים לחודש הבא
+ * 3. אם ה-10 כבר עבר - מעבירים לחודש הבא (ממשיכים עד שמגיעים לתאריך עתידי)
  */
 const calculatePaymentDate = (invoiceDateStr, termsCode) => {
   try {
@@ -50,10 +50,10 @@ const calculatePaymentDate = (invoiceDateStr, termsCode) => {
     // Step 2: Payment is always on the 10th
     let paymentDate = new Date(baseYear, baseMonth, 10);
 
-    // Step 3: If the 10th has already passed, move to next month
+    // Step 3: If the 10th has already passed, keep moving to next month until we reach a future date
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    if (paymentDate < today) {
+    while (paymentDate < today) {
       paymentDate.setMonth(paymentDate.getMonth() + 1);
     }
 
