@@ -500,6 +500,10 @@ ${settings.companyName}`;
 
   // Handle request statement action - open statement modal
   const handleRequestStatement = async (row, rowIndex) => {
+    // Close other modals first
+    setPaymentModal(null);
+    setEmailModal(null);
+    
     const settings = getEmailSettings();
     setStatementModal({ row, rowIndex });
     
