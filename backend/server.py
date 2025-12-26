@@ -1437,7 +1437,7 @@ async def export_ready_payment(request: ExportReadyPaymentRequest):
             amount_cell.number_format = '#,##0.00 ₪'
             
             ws.cell(row=idx+1, column=5, value=row.get("date", ""))
-            ws.cell(row=idx+1, column=6, value=calculate_payment_date(row.get("date", "")))
+            ws.cell(row=idx+1, column=6, value=calculate_payment_date(row.get("date", ""), row.get("payment_terms", "")))
             ws.cell(row=idx+1, column=7, value=row.get("details", ""))
         
         # Total row
