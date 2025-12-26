@@ -91,6 +91,7 @@ class Supplier(BaseModel):
     purchase_account_desc: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+    payment_terms: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -103,6 +104,7 @@ class SupplierCreate(BaseModel):
     purchase_account_desc: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+    payment_terms: Optional[str] = None
 
 class SupplierUpdate(BaseModel):
     account_number: Optional[str] = None
@@ -113,6 +115,7 @@ class SupplierUpdate(BaseModel):
     purchase_account_desc: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+    payment_terms: Optional[str] = None
 
 class SupplierImportResult(BaseModel):
     total: int = 0
