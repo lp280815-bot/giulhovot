@@ -663,6 +663,43 @@ async def get_status_checks():
     return status_checks
 
 
+
+# ========= App Settings =========
+
+@api_router.get("/settings")
+async def get_settings():
+    """Get application settings from database."""
+    settings = await db.app_settings.find_one({}, {"_id": 0})
+    if not settings:
+        # Return default settings
+        return {
+            "company_email": "office@ilang.co.il",
+            "signer_name": "ילנה זמליאנסקי",
+            "company_name": "אילן גינון ופיתוח בע\"מ",
+            "company_registration": "",
+            "microsoft_email": "",
+            "microsoft_name": "",
+            "custom_signature": ""
+        }
+    return settings
+
+
+@api_router.post("/settings")
+async def save_settings(settings: AppSettings):
+    """Save application settings to database."""
+    settings_dict = settings.model_dump()
+    settings_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # Upsert - update if exists, insert if not
+    await db.app_settings.update_one(
+        {},
+        {"$set": settings_dict},
+        upsert=True
+    )
+    return {"success": True, "message": "Settings saved successfully"}
+
+
+
 # ========= Supplier Management =========
 
 @api_router.post("/suppliers", response_model=Supplier)
