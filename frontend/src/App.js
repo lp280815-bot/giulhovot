@@ -539,8 +539,14 @@ ${signaturePart}`;
         selectedForPayment.includes(idx)
       );
       
-      // Move each selected row to ready_payment
-      for (const row of rowsToMove) {
+      // Add payment_terms to each row before moving
+      const rowsWithTerms = rowsToMove.map(row => ({
+        ...row,
+        payment_terms: paymentModal.paymentTerms || ""
+      }));
+      
+      // Move each selected row to ready_payment (with payment terms)
+      for (const row of rowsWithTerms) {
         await axios.post(`${API}/move-row`, {
           row_index: 0,
           from_category: "special",
