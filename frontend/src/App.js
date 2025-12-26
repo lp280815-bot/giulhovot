@@ -2743,19 +2743,86 @@ const EmailSettingsSection = () => {
       
       {/* Preview */}
       <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-        <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-          <Eye size={16} />
-          תצוגה מקדימה של חתימת המייל:
-        </h4>
-        <div className="bg-white rounded-lg p-4 border border-gray-100">
-          <p className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">
-            {`*** אשמח לקבל חשבוניות במייל: ${settings.companyEmail} ***
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Eye size={16} />
+            תצוגה מקדימה של חתימת המייל:
+          </h4>
+          {!editingSignature ? (
+            <button
+              onClick={() => {
+                const defaultSig = settings.customSignature || `*** אשמח לקבל חשבוניות במייל: ${settings.companyEmail} ***
+
+בברכה,
+${settings.signerName}
+${settings.companyName}`;
+                setSignatureText(defaultSig);
+                setEditingSignature(true);
+              }}
+              className="text-sm text-[#00CDB8] hover:text-[#00B5A3] flex items-center gap-1"
+            >
+              <FileText size={14} />
+              עריכה
+            </button>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const newSettings = { ...settings, customSignature: signatureText };
+                  setSettings(newSettings);
+                  localStorage.setItem("emailSettings", JSON.stringify(newSettings));
+                  setEditingSignature(false);
+                  setSaved(true);
+                  setTimeout(() => setSaved(false), 2000);
+                }}
+                className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1"
+              >
+                <Check size={14} />
+                שמור
+              </button>
+              <button
+                onClick={() => setEditingSignature(false)}
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              >
+                <X size={14} />
+                ביטול
+              </button>
+            </div>
+          )}
+        </div>
+        
+        {editingSignature ? (
+          <textarea
+            value={signatureText}
+            onChange={(e) => setSignatureText(e.target.value)}
+            className="w-full h-40 p-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8] resize-none"
+            dir="rtl"
+            placeholder="ערוך את החתימה כאן..."
+          />
+        ) : (
+          <div className="bg-white rounded-lg p-4 border border-gray-100">
+            <p className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">
+              {settings.customSignature || `*** אשמח לקבל חשבוניות במייל: ${settings.companyEmail} ***
 
 בברכה,
 ${settings.signerName}
 ${settings.companyName}`}
-          </p>
-        </div>
+            </p>
+          </div>
+        )}
+        
+        {!editingSignature && settings.customSignature && (
+          <button
+            onClick={() => {
+              const newSettings = { ...settings, customSignature: "" };
+              setSettings(newSettings);
+              localStorage.setItem("emailSettings", JSON.stringify(newSettings));
+            }}
+            className="mt-2 text-xs text-red-500 hover:text-red-700"
+          >
+            איפוס לברירת מחדל
+          </button>
+        )}
       </div>
     </div>
   );
