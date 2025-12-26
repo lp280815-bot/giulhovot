@@ -149,12 +149,20 @@ const StatsCard = ({ label, value, color }) => (
 
 // Processing Tab
 const ProcessingTab = () => {
+  // Load saved results from localStorage
+  const getSavedResults = () => {
+    const saved = localStorage.getItem("processingResults");
+    return saved ? JSON.parse(saved) : null;
+  };
+  
+  const savedResults = getSavedResults();
+  
   const [mainFile, setMainFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState(savedResults?.stats || null);
   const [error, setError] = useState(null);
-  const [processedFileUrl, setProcessedFileUrl] = useState(null);
-  const [processedFileName, setProcessedFileName] = useState("");
+  const [processedFileUrl, setProcessedFileUrl] = useState(savedResults?.processedFileUrl || null);
+  const [processedFileName, setProcessedFileName] = useState(savedResults?.processedFileName || "");
   const [expandedCategory, setExpandedCategory] = useState(null);
   const [categoryDetails, setCategoryDetails] = useState([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
