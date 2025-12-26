@@ -2481,6 +2481,11 @@ const SuppliersTab = () => {
                   <td className="px-3 py-3 text-sm text-gray-600">{supplier.purchase_account_desc || "-"}</td>
                   <td className="px-3 py-3 text-sm text-gray-600 whitespace-nowrap">{supplier.phone || "-"}</td>
                   <td className="px-3 py-3 text-sm text-gray-600">{supplier.email || "-"}</td>
+                  <td className="px-3 py-3 text-sm text-gray-600">
+                    {supplier.payment_terms ? 
+                      paymentTermsOptions.find(o => o.code === supplier.payment_terms)?.label || supplier.payment_terms 
+                      : "-"}
+                  </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center justify-center gap-1">
                       <button
