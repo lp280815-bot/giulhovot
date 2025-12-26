@@ -187,6 +187,10 @@ const ProcessingTab = () => {
   const [statementDateFrom, setStatementDateFrom] = useState("");
   const [statementDateTo, setStatementDateTo] = useState("");
   const [sendingStatement, setSendingStatement] = useState(false);
+  
+  // KA confirmation modal state
+  const [kaModal, setKaModal] = useState(null);
+  const [movingToKa, setMovingToKa] = useState(false);
 
   // Get email settings from localStorage
   const getEmailSettings = () => {
