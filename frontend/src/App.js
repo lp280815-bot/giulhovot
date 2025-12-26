@@ -652,6 +652,97 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
     }
   };
 
+  // Handle KA action - show confirmation modal
+  const handleKaAction = (row, rowIndex) => {
+    // Count supplier rows
+    const supplierRowsCount = categoryDetails.filter(r => 
+      r.name === row.name || r.account === row.account
+    ).length;
+    
+    setKaModal({ row, rowIndex, supplierRowsCount });
+  };
+
+  // Move single row to KA
+  const moveRowToKa = async () => {
+    if (!kaModal) return;
+    
+    setMovingToKa(true);
+    try {
+      await axios.post(`${API}/move-row`, {
+        row_index: kaModal.rowIndex,
+        from_category: expandedCategory,
+        to_category: "ka",
+        row_data: kaModal.row
+      });
+      
+      // Remove row from current view
+      setCategoryDetails(prev => prev.filter((_, idx) => idx !== kaModal.rowIndex));
+      
+      // Update stats
+      setStats(prev => ({
+        ...prev,
+        special: Math.max(0, (prev.special || 0) - 1),
+        ka: (prev.ka || 0) + 1
+      }));
+      
+      setKaModal(null);
+    } catch (err) {
+      console.error("Error moving row to KA:", err);
+      alert("שגיאה בהעברת השורה");
+    } finally {
+      setMovingToKa(false);
+    }
+  };
+
+  // Move all supplier rows to KA
+  const moveAllSupplierRowsToKa = async () => {
+    if (!kaModal) return;
+    
+    setMovingToKa(true);
+    try {
+      // Get all rows for this supplier
+      const supplierRows = categoryDetails.filter(r => 
+        r.name === kaModal.row.name || r.account === kaModal.row.account
+      );
+      
+      // Move each row
+      for (const row of supplierRows) {
+        const rowIndex = categoryDetails.findIndex(r => 
+          r.account === row.account && 
+          r.name === row.name && 
+          Math.abs(r.amount - row.amount) < 0.01 &&
+          r.date === row.date
+        );
+        
+        await axios.post(`${API}/move-row`, {
+          row_index: rowIndex,
+          from_category: expandedCategory,
+          to_category: "ka",
+          row_data: row
+        });
+      }
+      
+      // Remove all supplier rows from current view
+      setCategoryDetails(prev => prev.filter(r => 
+        !(r.name === kaModal.row.name || r.account === kaModal.row.account)
+      ));
+      
+      // Update stats
+      setStats(prev => ({
+        ...prev,
+        special: Math.max(0, (prev.special || 0) - supplierRows.length),
+        ka: (prev.ka || 0) + supplierRows.length
+      }));
+      
+      setKaModal(null);
+    } catch (err) {
+      console.error("Error moving supplier rows to KA:", err);
+      alert("שגיאה בהעברת השורות");
+    } finally {
+      setMovingToKa(false);
+    }
+  };
+
   // Handle row action (move to different category)
   const handleRowAction = async (row, action, rowIndex) => {
     if (!action) return;
