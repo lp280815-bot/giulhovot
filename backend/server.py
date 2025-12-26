@@ -733,27 +733,44 @@ async def download_suppliers_template():
     # RTL
     ws.sheet_view.rightToLeft = True
     
-    # Headers
-    headers = ["מס' ספק", "שם ספק", "מטבע", "מס. עוסק מורשה", "חשבון קניות", "תאור חשבון קניות", "טלפון", "e-mail"]
+    # Headers - matching the table columns in UI
+    headers = ["מס' ספק", "שם ספק", "מס. עוסק מורשה", "חשבון קניות", "תאור חשבון קניות", "טלפון", "e-mail", "תנאי תשלום"]
     for col, header in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=header)
         cell.fill = PatternFill(start_color="FF00CDB8", end_color="FF00CDB8", fill_type="solid")
         cell.alignment = Alignment(horizontal="center")
+        cell.font = Font(bold=True)
     
     # Example row
-    example = ["20001", "שם הספק לדוגמה", "ש\"ח", "123456789", "75001", "קניות דשא / עצים / שתילים", "04-1234567", "example@email.com"]
+    example = ["20001", "שם הספק לדוגמה", "123456789", "75001", "קניות דשא / עצים / שתילים", "04-1234567", "example@email.com", "03"]
     for col, val in enumerate(example, 1):
         ws.cell(row=2, column=col, value=val)
+    
+    # Payment terms legend (row 4)
+    ws.cell(row=4, column=1, value="קודי תנאי תשלום:")
+    ws.cell(row=4, column=1).font = Font(bold=True)
+    terms_legend = [
+        ("01", "שוטף"),
+        ("02", "שוטף + 15"),
+        ("03", "שוטף + 30"),
+        ("04", "שוטף + 45"),
+        ("05", "שוטף + 60"),
+        ("06", "שוטף + 90"),
+        ("07", "שוטף + 120"),
+        ("08", "מזומן")
+    ]
+    for idx, (code, desc) in enumerate(terms_legend):
+        ws.cell(row=5+idx, column=1, value=f"{code} = {desc}")
     
     # Adjust column widths
     ws.column_dimensions['A'].width = 12
     ws.column_dimensions['B'].width = 30
-    ws.column_dimensions['C'].width = 8
-    ws.column_dimensions['D'].width = 15
-    ws.column_dimensions['E'].width = 12
-    ws.column_dimensions['F'].width = 35
-    ws.column_dimensions['G'].width = 15
-    ws.column_dimensions['H'].width = 25
+    ws.column_dimensions['C'].width = 15
+    ws.column_dimensions['D'].width = 12
+    ws.column_dimensions['E'].width = 35
+    ws.column_dimensions['F'].width = 15
+    ws.column_dimensions['G'].width = 25
+    ws.column_dimensions['H'].width = 15
     
     output = io.BytesIO()
     wb.save(output)
