@@ -426,6 +426,158 @@ ${settings.companyName}`;
     }
   };
 
+  // Handle payment action - open payment modal
+  const handlePaymentAction = (row, rowIndex) => {
+    // Find all rows for the same supplier
+    const supplierRows = categoryDetails.filter(r => 
+      r.name === row.name || r.account === row.account
+    );
+    setPaymentModal({ row, rowIndex, supplierRows });
+    setSelectedForPayment(supplierRows.map((_, idx) => idx)); // Select all by default
+  };
+
+  // Toggle row selection for payment
+  const togglePaymentSelection = (idx) => {
+    setSelectedForPayment(prev => 
+      prev.includes(idx) 
+        ? prev.filter(i => i !== idx)
+        : [...prev, idx]
+    );
+  };
+
+  // Generate payment file (Excel)
+  const handleGeneratePayment = async () => {
+    if (selectedForPayment.length === 0) {
+      alert("יש לבחור לפחות שורה אחת לתשלום");
+      return;
+    }
+    
+    setGeneratingPayment(true);
+    try {
+      const rowsToPayment = paymentModal.supplierRows.filter((_, idx) => 
+        selectedForPayment.includes(idx)
+      );
+      
+      const response = await axios.post(`${API}/generate-payment`, {
+        rows: rowsToPayment,
+        supplier_name: paymentModal.row.name
+      }, { responseType: 'blob' });
+      
+      // Download the file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `תשלום_${paymentModal.row.name}_${new Date().toLocaleDateString('he-IL')}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      // Remove paid rows from the list
+      const paidAccounts = new Set(rowsToPayment.map(r => `${r.account}-${r.amount}-${r.date}`));
+      setCategoryDetails(prev => prev.filter(r => 
+        !paidAccounts.has(`${r.account}-${r.amount}-${r.date}`)
+      ));
+      
+      // Update stats
+      setStats(prev => ({
+        ...prev,
+        special: Math.max(0, (prev.special || 0) - rowsToPayment.length)
+      }));
+      
+      setPaymentModal(null);
+      setSelectedForPayment([]);
+    } catch (err) {
+      console.error("Error generating payment:", err);
+      alert("שגיאה ביצירת קובץ תשלום");
+    } finally {
+      setGeneratingPayment(false);
+    }
+  };
+
+  // Handle request statement action - open statement modal
+  const handleRequestStatement = async (row, rowIndex) => {
+    const settings = getEmailSettings();
+    setStatementModal({ row, rowIndex });
+    
+    // Set default date range (last 3 months)
+    const today = new Date();
+    const threeMonthsAgo = new Date(today);
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    setStatementDateFrom(threeMonthsAgo.toISOString().split('T')[0]);
+    setStatementDateTo(today.toISOString().split('T')[0]);
+    
+    // Fetch supplier info
+    try {
+      const response = await axios.get(`${API}/suppliers`);
+      const suppliers = response.data;
+      const supplier = suppliers.find(s => 
+        s.account_number === row.account || 
+        s.name === row.name ||
+        s.account_number === String(row.account)
+      );
+      setSupplierInfo(supplier || null);
+    } catch (err) {
+      console.error("Error fetching supplier:", err);
+      setSupplierInfo(null);
+    }
+  };
+
+  // Send statement request email
+  const handleSendStatementRequest = async () => {
+    if (!supplierInfo?.email) {
+      alert("לא נמצא מייל לספק זה");
+      return;
+    }
+    
+    const settings = getEmailSettings();
+    if (!settings.microsoftEmail) {
+      alert("יש להתחבר ל-Microsoft קודם בלשונית 'כללים'");
+      return;
+    }
+    
+    setSendingStatement(true);
+    try {
+      const fromDate = new Date(statementDateFrom).toLocaleDateString('he-IL');
+      const toDate = new Date(statementDateTo).toLocaleDateString('he-IL');
+      
+      const subject = `בקשה לכרטסת חשבון - ${statementModal.row.name}`;
+      const body = `שלום רב,
+
+נבקש לקבל כרטסת חשבון עבור התקופה:
+מתאריך: ${fromDate}
+עד תאריך: ${toDate}
+
+פרטי חשבון:
+שם ספק: ${statementModal.row.name}
+מספר חשבון: ${statementModal.row.account}
+${settings.companyRegistration ? `ח.פ: ${settings.companyRegistration}` : ''}
+
+נודה לקבלת הכרטסת במייל חוזר.
+
+בברכה,
+${settings.signerName}
+${settings.companyName}
+${settings.companyEmail}`;
+
+      await axios.post(`${API}/send-email-microsoft`, {
+        sender_email: settings.microsoftEmail,
+        recipient_email: supplierInfo.email,
+        subject: subject,
+        body: body
+      });
+      
+      alert("בקשת הכרטסת נשלחה בהצלחה!");
+      setStatementModal(null);
+      setStatementDateFrom("");
+      setStatementDateTo("");
+    } catch (err) {
+      console.error("Error sending statement request:", err);
+      alert(err.response?.data?.detail || "שגיאה בשליחת הבקשה");
+    } finally {
+      setSendingStatement(false);
+    }
+  };
+
   // Handle row action (move to different category)
   const handleRowAction = async (row, action, rowIndex) => {
     if (!action) return;
