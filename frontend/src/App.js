@@ -550,22 +550,23 @@ ${settings.companyName}`;
       
       // Updated subject and body format
       const subject = `בקשה לכרטסת - ${statementModal.row.name}`;
+      
+      // Build company info with registration number
+      const companyInfo = settings.companyRegistration 
+        ? `${settings.companyName} (ח.פ ${settings.companyRegistration})`
+        : settings.companyName;
+      
       const body = `שלום רב,
 
-נבקש לקבל כרטסת חשבון עבור התקופה:
+נבקש לקבל כרטסת של ${companyInfo} עבור התקופה:
 מתאריך: ${fromDate}
 עד תאריך: ${toDate}
 
-פרטי חשבון:
-שם ספק: ${statementModal.row.name}
-
-נבקש לקבל את הכרטסת בהקדם האפשרי לצורך השלמת הרישומים.
-
-*** אשמח לקבל חשבוניות במייל: ${settings.companyEmail} ***
+${settings.customSignature || `*** אשמח לקבל חשבוניות במייל: ${settings.companyEmail} ***
 
 בברכה,
 ${settings.signerName}
-${settings.companyName}`;
+${settings.companyName}`}`;
 
       await axios.post(`${API}/send-email-microsoft`, {
         sender_email: settings.microsoftEmail,
