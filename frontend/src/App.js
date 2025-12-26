@@ -1495,6 +1495,8 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                                         handlePaymentAction(row, originalIndex);
                                       } else if (e.target.value === "request_statement") {
                                         handleRequestStatement(row, originalIndex);
+                                      } else if (e.target.value === "ka") {
+                                        handleKaAction(row, originalIndex);
                                       } else {
                                         handleRowAction(row, e.target.value, originalIndex);
                                       }
