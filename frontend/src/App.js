@@ -2073,6 +2073,65 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
             </div>
           )}
 
+          {/* KA Confirmation Modal */}
+          {kaModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setKaModal(null)}>
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+                {/* Header */}
+                <div className="bg-gray-500 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
+                  <h3 className="text-xl font-bold">🔖 העברה לכ.א</h3>
+                  <button onClick={() => setKaModal(null)} className="text-white hover:bg-white/20 rounded-full p-1">
+                    <X size={24} />
+                  </button>
+                </div>
+                
+                {/* Content */}
+                <div className="p-6 space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-gray-700 font-medium mb-2">ספק: {kaModal.row.name}</p>
+                    <p className="text-sm text-gray-500">
+                      נמצאו {kaModal.supplierRowsCount} תנועות לספק זה
+                    </p>
+                  </div>
+                  
+                  <p className="text-center text-gray-600">מה ברצונך להעביר?</p>
+                  
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={moveRowToKa}
+                      disabled={movingToKa}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+                    >
+                      {movingToKa ? (
+                        <Loader2 size={18} className="animate-spin" />
+                      ) : (
+                        <>
+                          <FileText size={18} />
+                          <span>רק שורה זו</span>
+                        </>
+                      )}
+                    </button>
+                    
+                    <button
+                      onClick={moveAllSupplierRowsToKa}
+                      disabled={movingToKa}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gray-500 text-white hover:bg-gray-600 transition-all"
+                    >
+                      {movingToKa ? (
+                        <Loader2 size={18} className="animate-spin" />
+                      ) : (
+                        <>
+                          <Users size={18} />
+                          <span>כל התנועות של הספק ({kaModal.supplierRowsCount})</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Download Button */}
           <div className="flex flex-col items-center gap-4 pt-4">
             <div className="flex items-center gap-4">
