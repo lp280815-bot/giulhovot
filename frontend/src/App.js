@@ -3332,9 +3332,17 @@ const EmailSettingsSection = () => {
       <div className="mt-6 flex items-center gap-4">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-[#00CDB8] text-white rounded-lg font-medium hover:bg-[#00B5A3] transition-colors"
+          disabled={saving}
+          className="px-6 py-2 bg-[#00CDB8] text-white rounded-lg font-medium hover:bg-[#00B5A3] transition-colors disabled:opacity-50 flex items-center gap-2"
         >
-          שמור הגדרות
+          {saving ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              שומר...
+            </>
+          ) : (
+            'שמור הגדרות'
+          )}
         </button>
         {saved && (
           <span className="text-green-600 text-sm flex items-center gap-1">
