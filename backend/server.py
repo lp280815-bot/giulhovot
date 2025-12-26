@@ -1440,8 +1440,8 @@ async def export_ready_payment(request: ExportReadyPaymentRequest):
                 # Step 2: Payment is always on the 10th
                 payment_date = datetime(payment_year, payment_month, 10)
                 
-                # Step 3: If the 10th has already passed, move to next month
-                if payment_date < today:
+                # Step 3: If the 10th has already passed, keep moving to next month until we reach a future date
+                while payment_date < today:
                     payment_month += 1
                     if payment_month > 12:
                         payment_month = 1
