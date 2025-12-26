@@ -2027,6 +2027,7 @@ const SuppliersTab = () => {
       purchase_account_desc: "",
       email: "",
       phone: "",
+      payment_terms: "",
     });
   };
 
