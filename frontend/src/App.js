@@ -1152,6 +1152,7 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
                   {expandedCategory === "blue" && "העברות בנקאיות בלי חשבונית - פירוט"}
                   {expandedCategory === "special" && "לטיפול מיוחד/תשלום - פירוט"}
                   {expandedCategory === "command" && "לעשות פקודה - פירוט"}
+                  {expandedCategory === "ka" && "כ.א - פירוט"}
                   {expandedCategory === "emails" && "מיילים לספק - פירוט"}
                 </span>
                 <span className="text-sm opacity-80">
