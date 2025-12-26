@@ -1114,28 +1114,59 @@ ${settings.companyName}`;
                                 </>
                               )}
                               <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
-                                <select
-                                  className="px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8] bg-white"
-                                  onChange={(e) => {
-                                    const originalIndex = categoryDetails.findIndex(r => 
-                                      r.account === row.account && 
-                                      r.name === row.name && 
-                                      Math.abs(r.amount - row.amount) < 0.01 &&
-                                      r.date === row.date
-                                    );
-                                    handleRowAction(row, e.target.value, originalIndex);
-                                    e.target.value = "";
-                                  }}
-                                  disabled={movingRow !== null}
-                                  defaultValue=""
-                                >
-                                <option value="" disabled>בחר פעולה</option>
-                                <option value="match">התאמה ✓</option>
-                                <option value="special">הסר מרשימה</option>
-                                <option value="command">לעשות פקודה</option>
-                                <option value="emails">חסרה חשבונית</option>
-                              </select>
-                            </td>
+                                {expandedCategory === "special" ? (
+                                  /* Special actions for לטיפול מיוחד/תשלום */
+                                  <select
+                                    className="px-2 py-1 border border-red-200 rounded-lg text-sm focus:outline-none focus:border-red-500 bg-white"
+                                    onChange={(e) => {
+                                      const originalIndex = categoryDetails.findIndex(r => 
+                                        r.account === row.account && 
+                                        r.name === row.name && 
+                                        Math.abs(r.amount - row.amount) < 0.01 &&
+                                        r.date === row.date
+                                      );
+                                      if (e.target.value === "payment") {
+                                        handlePaymentAction(row, originalIndex);
+                                      } else if (e.target.value === "request_statement") {
+                                        handleRequestStatement(row, originalIndex);
+                                      } else {
+                                        handleRowAction(row, e.target.value, originalIndex);
+                                      }
+                                      e.target.value = "";
+                                    }}
+                                    disabled={movingRow !== null}
+                                    defaultValue=""
+                                  >
+                                    <option value="" disabled>בחר פעולה</option>
+                                    <option value="payment">💰 תשלום</option>
+                                    <option value="command">📝 לעשות פקודה</option>
+                                    <option value="request_statement">📋 לבקש כרטסת</option>
+                                  </select>
+                                ) : (
+                                  /* Regular actions for other categories */
+                                  <select
+                                    className="px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8] bg-white"
+                                    onChange={(e) => {
+                                      const originalIndex = categoryDetails.findIndex(r => 
+                                        r.account === row.account && 
+                                        r.name === row.name && 
+                                        Math.abs(r.amount - row.amount) < 0.01 &&
+                                        r.date === row.date
+                                      );
+                                      handleRowAction(row, e.target.value, originalIndex);
+                                      e.target.value = "";
+                                    }}
+                                    disabled={movingRow !== null}
+                                    defaultValue=""
+                                  >
+                                    <option value="" disabled>בחר פעולה</option>
+                                    <option value="match">התאמה ✓</option>
+                                    <option value="special">הסר מרשימה</option>
+                                    <option value="command">לעשות פקודה</option>
+                                    <option value="emails">חסרה חשבונית</option>
+                                  </select>
+                                )}
+                              </td>
                           </tr>
                           ))
                         )}
