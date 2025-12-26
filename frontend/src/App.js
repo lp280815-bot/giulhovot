@@ -1107,6 +1107,12 @@ ${settings.companyName}`;
                               <td className="px-4 py-2 text-gray-600">{row.date}</td>
                               <td className="px-4 py-2 text-gray-600">{row.details}</td>
                               <td className="px-4 py-2 text-gray-600">{row.invoice}</td>
+                              {expandedCategory === "special" && (
+                                <>
+                                  <td className="px-4 py-2 text-gray-600">{row.account_description}</td>
+                                  <td className="px-4 py-2 text-gray-600">{row.supplier_account}</td>
+                                </>
+                              )}
                               <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                                 <select
                                   className="px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#00CDB8] bg-white"
