@@ -2537,6 +2537,7 @@ const EmailSettingsSection = () => {
       companyEmail: "office@ilang.co.il",
       signerName: "ילנה זמליאנסקי",
       companyName: "אילן גינון ופיתוח בע\"מ",
+      companyRegistration: "",
       microsoftEmail: "",
       microsoftName: "",
       customSignature: ""
