@@ -103,10 +103,10 @@
 #====================================================================================================
 
 
-user_problem_statement: "Debt aging analysis app - Add expandable details view for 'Special Treatment/Payment' (לטיפול מיוחד/תשלום) category with additional columns: תאור חשבון (account_description) and חש. ספק (supplier_account)"
+user_problem_statement: "Debt aging analysis app - Add special actions for 'Special Treatment/Payment' category: Payment (תשלום), Make Command (לעשות פקודה), Request Statement (לבקש כרטסת)"
 
 backend:
-  - task: "Move row API endpoint"
+  - task: "Generate payment Excel API"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -114,64 +114,62 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: "NA"
+      - working: true
         agent: "main"
-        comment: "Added POST /api/move-row endpoint to move rows between categories (special, command)"
-
-  - task: "Processing details with new columns"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Backend already extracts account_description and supplier_account columns from Excel - done by previous agent"
+        comment: "Added POST /api/generate-payment endpoint that creates Excel file with payment list, calculates payment dates (invoice + 60 days -> 10th of month), and removes paid rows from DB"
 
 frontend:
-  - task: "Special Treatment details table with new columns"
+  - task: "Special Treatment action dropdown"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Added 'תאור חשבון' (account_description) and 'חש. ספק' (supplier_account) columns to the Special Treatment category details table. These columns appear only when clicking on the red 'לטיפול מיוחד/תשלום' button."
-      - working: true
-        agent: "testing"
-        comment: "✅ TESTING SUCCESSFUL: Verified Special Treatment category functionality. Backend API returns 5 rows with correct data. Frontend displays RED button with number '5' labeled 'לטיפול מיוחד/תשלום'. Clicking button expands table with ALL required columns: חשבון, שם, סכום, תאריך, פרטים, חשבונית, תאור חשבון, חש. ספק, פעולה. All 5 rows display correctly with proper data in new columns (account_description and supplier_account). Action dropdowns present in each row. Feature working as expected."
+        comment: "Added special action dropdown with 3 options: 💰 תשלום, 📝 לעשות פקודה, 📋 לבקש כרטסת"
 
-  - task: "Linter warning fix"
+  - task: "Payment modal"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/frontend/src/App.js"
     stuck_count: 0
-    priority: "low"
-    needs_retesting: false
+    priority: "high"
+    needs_retesting: true
     status_history:
-      - working: true
+      - working: "NA"
         agent: "main"
-        comment: "Fixed useEffect missing dependency warning by adding eslint-disable comment"
+        comment: "Added payment modal with checkbox selection for rows, total calculation, and Excel download"
+
+  - task: "Statement request modal"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added statement request modal with date range selector and email sending via Microsoft Graph API"
 
 metadata:
   created_by: "main_agent"
-  version: "1.1"
-  test_sequence: 2
+  version: "1.2"
+  test_sequence: 3
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Special Treatment action dropdown"
+    - "Payment modal"
+    - "Statement request modal"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Completed implementation of expanded details view for 'Special Treatment/Payment' category. The red button 'לטיפול מיוחד/תשלום' is now clickable and shows a details table with the following columns: חשבון, שם, סכום, תאריך, פרטים, חשבונית, תאור חשבון, חש. ספק (these last 2 are new). Testing should: 1) Upload an Excel file for processing, 2) Click the red 'לטיפול מיוחד/תשלום' button, 3) Verify the details table expands and shows ALL columns including the new ones (תאור חשבון, חש. ספק)"
-  - agent: "testing"
-    message: "✅ TESTING COMPLETED SUCCESSFULLY: Special Treatment category is working perfectly. Backend API confirmed returning 5 rows with correct data structure including new columns. Frontend UI test passed: 1) RED button displays correctly with number '5' and Hebrew label 'לטיפול מיוחד/תשלום', 2) Button click expands table with all 9 required columns including new ones 'תאור חשבון' and 'חש. ספק', 3) All 5 data rows display with proper content in new columns, 4) Action dropdowns present. Feature implementation is complete and functional."
+    message: "Implemented P1 features for Special Treatment category. The red category button now has unique action dropdown with 3 options: 1) תשלום - opens payment modal with row selection, generates Excel payment file, 2) לעשות פקודה - moves row to command category (already worked), 3) לבקש כרטסת - opens modal to send statement request email with date range. Backend API /api/generate-payment confirmed working (returns valid xlsx). Testing should: Upload file, click red special button, expand table, select row action dropdown and test each option."
