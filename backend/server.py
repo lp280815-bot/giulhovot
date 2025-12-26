@@ -793,33 +793,49 @@ async def export_suppliers_to_excel():
     ws.title = "ספקים"
     ws.sheet_view.rightToLeft = True
     
-    # Headers
-    headers = ["מס' ספק", "שם ספק", "מטבע", "מס. עוסק מורשה", "חשבון קניות", "תאור חשבון קניות", "טלפון", "e-mail"]
+    # Headers - matching the table columns in UI
+    headers = ["מס' ספק", "שם ספק", "מס. עוסק מורשה", "חשבון קניות", "תאור חשבון קניות", "טלפון", "e-mail", "תנאי תשלום"]
     for col, header in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=header)
         cell.fill = PatternFill(start_color="FF00CDB8", end_color="FF00CDB8", fill_type="solid")
         cell.alignment = Alignment(horizontal="center")
+        cell.font = Font(bold=True)
+    
+    # Payment terms mapping for display
+    payment_terms_labels = {
+        "01": "שוטף",
+        "02": "שוטף + 15",
+        "03": "שוטף + 30",
+        "04": "שוטף + 45",
+        "05": "שוטף + 60",
+        "06": "שוטף + 90",
+        "07": "שוטף + 120",
+        "08": "מזומן"
+    }
     
     # Data rows
     for row_idx, supplier in enumerate(suppliers, 2):
         ws.cell(row=row_idx, column=1, value=supplier.get("account_number", ""))
         ws.cell(row=row_idx, column=2, value=supplier.get("name", ""))
-        ws.cell(row=row_idx, column=3, value=supplier.get("currency", "ש\"ח"))
-        ws.cell(row=row_idx, column=4, value=supplier.get("vat_number", ""))
-        ws.cell(row=row_idx, column=5, value=supplier.get("purchase_account", ""))
-        ws.cell(row=row_idx, column=6, value=supplier.get("purchase_account_desc", ""))
-        ws.cell(row=row_idx, column=7, value=supplier.get("phone", ""))
-        ws.cell(row=row_idx, column=8, value=supplier.get("email", ""))
+        ws.cell(row=row_idx, column=3, value=supplier.get("vat_number", ""))
+        ws.cell(row=row_idx, column=4, value=supplier.get("purchase_account", ""))
+        ws.cell(row=row_idx, column=5, value=supplier.get("purchase_account_desc", ""))
+        ws.cell(row=row_idx, column=6, value=supplier.get("phone", ""))
+        ws.cell(row=row_idx, column=7, value=supplier.get("email", ""))
+        # Payment terms - show code and label
+        pt_code = supplier.get("payment_terms", "")
+        pt_label = payment_terms_labels.get(pt_code, "")
+        ws.cell(row=row_idx, column=8, value=f"{pt_code} - {pt_label}" if pt_code and pt_label else pt_code)
     
     # Adjust column widths
     ws.column_dimensions['A'].width = 12
     ws.column_dimensions['B'].width = 30
-    ws.column_dimensions['C'].width = 8
-    ws.column_dimensions['D'].width = 15
-    ws.column_dimensions['E'].width = 12
-    ws.column_dimensions['F'].width = 35
-    ws.column_dimensions['G'].width = 15
-    ws.column_dimensions['H'].width = 25
+    ws.column_dimensions['C'].width = 15
+    ws.column_dimensions['D'].width = 12
+    ws.column_dimensions['E'].width = 35
+    ws.column_dimensions['F'].width = 15
+    ws.column_dimensions['G'].width = 25
+    ws.column_dimensions['H'].width = 15
     
     output = io.BytesIO()
     wb.save(output)
