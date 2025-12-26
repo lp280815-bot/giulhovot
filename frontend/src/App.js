@@ -616,12 +616,10 @@ ${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
           r.name === statementModal.row.name || r.account === statementModal.row.account
         ).length;
         
-        await axios.delete(`${API}/delete-supplier-rows`, {
-          data: {
-            category: "special",
-            supplier_name: statementModal.row.name,
-            supplier_account: statementModal.row.account
-          }
+        await axios.post(`${API}/delete-supplier-rows`, {
+          category: "special",
+          supplier_name: statementModal.row.name,
+          supplier_account: String(statementModal.row.account)
         });
         
         // Update local state - remove ALL rows for this supplier
