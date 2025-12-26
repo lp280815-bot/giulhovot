@@ -1156,7 +1156,7 @@ class DeleteSupplierRowsRequest(BaseModel):
 @api_router.post("/delete-supplier-rows")
 async def delete_supplier_rows(request: DeleteSupplierRowsRequest):
     """Delete all rows for a specific supplier from a category."""
-    valid_categories = ["green", "orange", "purple", "blue", "special", "command", "emails"]
+    valid_categories = ["green", "orange", "purple", "blue", "special", "command", "emails", "ka", "ready_payment"]
     if request.category not in valid_categories:
         raise HTTPException(status_code=400, detail="Invalid category")
     
