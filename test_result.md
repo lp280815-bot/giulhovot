@@ -121,39 +121,48 @@ backend:
 frontend:
   - task: "Special Treatment action dropdown"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added special action dropdown with 3 options: 💰 תשלום, 📝 לעשות פקודה, 📋 לבקש כרטסת"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Special Treatment dropdown works correctly. Found 5 action dropdowns in expanded table, all with correct 3 options: 💰 תשלום, 📝 לעשות פקודה, 📋 לבקש כרטסת. Red button expansion works perfectly."
 
   - task: "Payment modal"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added payment modal with checkbox selection for rows, total calculation, and Excel download"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Payment modal (BLUE) opens successfully with title 'יצירת רשימת תשלום'. Shows supplier details, checkboxes for row selection, total amount calculation (₪ 1,500.50), and download button 'הורד רשימת תשלום (Excel)'. Checkbox toggle functionality works. Minor: Multiple modals can open simultaneously causing overlay issues."
 
   - task: "Statement request modal"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added statement request modal with date range selector and email sending via Microsoft Graph API"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Statement request modal (PURPLE) opens successfully with title 'בקשת כרטסת'. Shows supplier details, date range inputs pre-filled with last 3 months (12/26/2025 to 09/26/2025), and email sending functionality. Minor: Multiple modals can open simultaneously causing overlay issues."
 
 metadata:
   created_by: "main_agent"
