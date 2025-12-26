@@ -1076,6 +1076,15 @@ async def get_processing_details(category: str):
     return {"rows": details.get(category, [])}
 
 
+
+@api_router.delete("/processing-details")
+async def clear_processing_details():
+    """Clear all processing details from database."""
+    result = await db.processing_details.delete_many({})
+    return {"success": True, "deleted_count": result.deleted_count, "message": "Processing details cleared"}
+
+
+
 @api_router.post("/move-row")
 async def move_row(request: MoveRowRequest):
     """Move a row from one category to another."""
