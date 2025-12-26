@@ -173,6 +173,7 @@ class ProcessingDetails(BaseModel):
     emails: List[DetailedRow] = []
     special: List[DetailedRow] = []
     ka: List[DetailedRow] = []
+    ready_payment: List[DetailedRow] = []
 
 class SendEmailRequest(BaseModel):
     sender_email: str
