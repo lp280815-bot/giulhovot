@@ -556,17 +556,26 @@ ${settings.companyName}`;
         ? `${settings.companyName} (ח.פ ${settings.companyRegistration})`
         : settings.companyName;
       
+      // Use custom signature or default, but for statement request use "כרטסת" instead of "חשבוניות"
+      let signature = settings.customSignature;
+      if (!signature) {
+        signature = `*** אשמח לקבל כרטסת במייל: ${settings.companyEmail} ***
+
+בברכה,
+${settings.signerName}
+${settings.companyName}`;
+      } else {
+        // Replace "חשבוניות" with "כרטסת" in the custom signature for statement requests
+        signature = signature.replace(/חשבוניות/g, 'כרטסת');
+      }
+      
       const body = `שלום רב,
 
 נבקש לקבל כרטסת של ${companyInfo} עבור התקופה:
 מתאריך: ${fromDate}
 עד תאריך: ${toDate}
 
-${settings.customSignature || `*** אשמח לקבל חשבוניות במייל: ${settings.companyEmail} ***
-
-בברכה,
-${settings.signerName}
-${settings.companyName}`}`;
+${signature}`;
 
       await axios.post(`${API}/send-email-microsoft`, {
         sender_email: settings.microsoftEmail,
