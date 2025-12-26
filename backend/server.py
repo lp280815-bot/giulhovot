@@ -945,7 +945,6 @@ async def import_suppliers_from_excel(
                     # Update existing supplier
                     update_data = {
                         "name": supplier_name,
-                        "currency": currency,
                         "vat_number": vat_number,
                         "purchase_account": purchase_account,
                         "purchase_account_desc": purchase_account_desc,
@@ -953,6 +952,10 @@ async def import_suppliers_from_excel(
                         "email": email,
                         "updated_at": now
                     }
+                    # Only update payment_terms if it was provided in the import
+                    if payment_terms:
+                        update_data["payment_terms"] = payment_terms
+                    
                     await db.suppliers.update_one(
                         {"account_number": account_number},
                         {"$set": update_data}
@@ -964,12 +967,12 @@ async def import_suppliers_from_excel(
                         "id": str(uuid.uuid4()),
                         "account_number": account_number,
                         "name": supplier_name,
-                        "currency": currency,
                         "vat_number": vat_number,
                         "purchase_account": purchase_account,
                         "purchase_account_desc": purchase_account_desc,
                         "phone": phone,
                         "email": email,
+                        "payment_terms": payment_terms,
                         "created_at": now,
                         "updated_at": now
                     }
