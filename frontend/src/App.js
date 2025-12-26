@@ -545,8 +545,17 @@ ${settings.companyName}`;
     
     setSendingStatement(true);
     try {
-      const fromDate = new Date(statementDateFrom).toLocaleDateString('he-IL');
-      const toDate = new Date(statementDateTo).toLocaleDateString('he-IL');
+      // Format dates as DD/MM/YYYY
+      const formatDateDDMMYYYY = (dateStr) => {
+        const date = new Date(dateStr);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      };
+      
+      const fromDate = formatDateDDMMYYYY(statementDateFrom);
+      const toDate = formatDateDDMMYYYY(statementDateTo);
       
       // Updated subject and body format
       const subject = `בקשה לכרטסת - ${statementModal.row.name}`;
@@ -556,26 +565,18 @@ ${settings.companyName}`;
         ? `${settings.companyName} (ח.פ ${settings.companyRegistration})`
         : settings.companyName;
       
-      // Use custom signature or default, but for statement request use "כרטסת" instead of "חשבוניות"
-      let signature = settings.customSignature;
-      if (!signature) {
-        signature = `*** אשמח לקבל כרטסת במייל: ${settings.companyEmail} ***
-
-בברכה,
-${settings.signerName}
-${settings.companyName}`;
-      } else {
-        // Replace "חשבוניות" with "כרטסת" in the custom signature for statement requests
-        signature = signature.replace(/חשבוניות/g, 'כרטסת');
-      }
-      
       const body = `שלום רב,
 
 נבקש לקבל כרטסת של ${companyInfo} עבור התקופה:
 מתאריך: ${fromDate}
 עד תאריך: ${toDate}
 
-${signature}`;
+*** אשמח לקבל כרטסת במייל: ${settings.companyEmail} ***
+
+בברכה,
+${settings.signerName}
+${settings.companyName}
+${settings.companyRegistration ? `ח.פ ${settings.companyRegistration}` : ''}`;
 
       await axios.post(`${API}/send-email-microsoft`, {
         sender_email: settings.microsoftEmail,
