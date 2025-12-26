@@ -1390,7 +1390,7 @@ async def export_ready_payment(request: ExportReadyPaymentRequest):
         header_alignment = Alignment(horizontal="center", vertical="center")
         
         # Headers
-        headers = ["מס'", "חשבון", "שם ספק", "סכום", "תאריך חשבונית", "תאריך תשלום", "פרטים"]
+        headers = ["מס'", "חשבון", "שם ספק", "סכום", "תאריך חשבונית", "מס' חשבונית", "תאריך תשלום", "פרטים"]
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = header_font
