@@ -1189,6 +1189,7 @@ async def delete_supplier_rows(request: DeleteSupplierRowsRequest):
 class PaymentRequest(BaseModel):
     rows: List[dict]
     supplier_name: str
+    payment_terms: Optional[str] = ""
 
 @api_router.post("/generate-payment")
 async def generate_payment(request: PaymentRequest):
@@ -1212,10 +1213,24 @@ async def generate_payment(request: PaymentRequest):
             cell.fill = header_fill
             cell.alignment = header_alignment
         
-        # Calculate payment date (invoice date + 60 days, then to the 10th of that month)
-        def calculate_payment_date(invoice_date_str):
+        # Payment terms mapping: code -> months to add after end of invoice month
+        payment_terms_map = {
+            "01": 0,   # שוטף - end of invoice month, payment on 10th of next month
+            "02": 0,   # שוטף + 15 - similar to שוטף but with 15 days
+            "03": 1,   # שוטף + 30 - payment on 10th of month after next
+            "04": 1,   # שוטף + 45
+            "05": 2,   # שוטף + 60 - payment 2 months after
+            "06": 3,   # שוטף + 90 - payment 3 months after
+            "07": 4,   # שוטף + 120 - payment 4 months after
+            "08": 0,   # מזומן - immediate
+        }
+        
+        # Calculate payment date based on invoice date and payment terms
+        def calculate_payment_date(invoice_date_str, payment_terms_code):
             try:
-                # Try to parse the date
+                today = datetime.now()
+                
+                # Parse invoice date
                 if "/" in str(invoice_date_str):
                     parts = str(invoice_date_str).split("/")
                     if len(parts) == 3:
@@ -1224,16 +1239,38 @@ async def generate_payment(request: PaymentRequest):
                             year += 2000
                         invoice_date = datetime(year, month, day)
                     else:
-                        invoice_date = datetime.now()
+                        invoice_date = today
                 else:
-                    invoice_date = datetime.now()
+                    invoice_date = today
                 
-                # Add 60 days
-                payment_date = invoice_date + timedelta(days=60)
-                # Set to 10th of that month
-                payment_date = payment_date.replace(day=10)
+                # Get months to add based on payment terms
+                months_to_add = payment_terms_map.get(payment_terms_code, 0)
+                
+                # Calculate payment month:
+                # שוטף (01) = invoice month + 1 (payment on 10th of next month)
+                # שוטף + 60 (05) = invoice month + 1 + 2 = invoice month + 3
+                payment_month = invoice_date.month + 1 + months_to_add
+                payment_year = invoice_date.year
+                
+                # Handle year rollover
+                while payment_month > 12:
+                    payment_month -= 12
+                    payment_year += 1
+                
+                # Payment is always on the 10th
+                payment_date = datetime(payment_year, payment_month, 10)
+                
+                # If payment date has already passed, move to next month's 10th
+                if payment_date < today:
+                    payment_month += 1
+                    if payment_month > 12:
+                        payment_month = 1
+                        payment_year += 1
+                    payment_date = datetime(payment_year, payment_month, 10)
+                
                 return payment_date.strftime("%d/%m/%Y")
-            except:
+            except Exception as e:
+                logger.error(f"Error calculating payment date: {e}")
                 return ""
         
         # Data rows
@@ -1251,7 +1288,7 @@ async def generate_payment(request: PaymentRequest):
             amount_cell.number_format = '#,##0.00 ₪'
             
             ws.cell(row=idx+1, column=7, value=row.get("date", ""))
-            ws.cell(row=idx+1, column=8, value=calculate_payment_date(row.get("date", "")))
+            ws.cell(row=idx+1, column=8, value=calculate_payment_date(row.get("date", ""), request.payment_terms))
             ws.cell(row=idx+1, column=9, value=row.get("details", ""))
         
         # Total row
