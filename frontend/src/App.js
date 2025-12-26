@@ -2042,6 +2042,7 @@ const SuppliersTab = () => {
       purchase_account_desc: supplier.purchase_account_desc || "",
       email: supplier.email || "",
       phone: supplier.phone || "",
+      payment_terms: supplier.payment_terms || "",
     });
     setShowForm(true);
   };
