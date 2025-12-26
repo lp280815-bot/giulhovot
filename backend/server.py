@@ -1340,6 +1340,122 @@ async def generate_payment(request: PaymentRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class ExportReadyPaymentRequest(BaseModel):
+    rows: List[dict]
+
+@api_router.post("/export-ready-payment")
+async def export_ready_payment(request: ExportReadyPaymentRequest):
+    """Export Ready for Payment rows as Excel file."""
+    try:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "מוכן לתשלום"
+        ws.sheet_view.rightToLeft = True
+        
+        # Header styling
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="14B8A6", end_color="14B8A6", fill_type="solid")  # Teal color
+        header_alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Headers
+        headers = ["מס'", "חשבון", "שם ספק", "סכום", "תאריך חשבונית", "תאריך תשלום", "פרטים"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+        
+        # Calculate payment date
+        def calculate_payment_date(invoice_date_str):
+            try:
+                if "/" in str(invoice_date_str):
+                    parts = str(invoice_date_str).split("/")
+                    if len(parts) == 3:
+                        day, month, year = int(parts[0]), int(parts[1]), int(parts[2])
+                        if year < 100:
+                            year += 2000
+                        invoice_date = datetime(year, month, day)
+                    else:
+                        return ""
+                elif "-" in str(invoice_date_str):
+                    invoice_date = datetime.fromisoformat(str(invoice_date_str).replace("Z", ""))
+                else:
+                    return ""
+                
+                # Default: שוטף + 30 (2 months)
+                payment_month = invoice_date.month + 2
+                payment_year = invoice_date.year
+                while payment_month > 12:
+                    payment_month -= 12
+                    payment_year += 1
+                payment_date = datetime(payment_year, payment_month, 10)
+                
+                # If payment date has passed, move to next month
+                if payment_date < datetime.now():
+                    payment_month += 1
+                    if payment_month > 12:
+                        payment_month = 1
+                        payment_year += 1
+                    payment_date = datetime(payment_year, payment_month, 10)
+                
+                return payment_date.strftime("%d/%m/%Y")
+            except Exception as e:
+                logger.error(f"Error calculating payment date: {e}")
+                return ""
+        
+        # Data rows
+        total_amount = 0
+        for idx, row in enumerate(request.rows, 1):
+            ws.cell(row=idx+1, column=1, value=idx)
+            ws.cell(row=idx+1, column=2, value=row.get("account", ""))
+            ws.cell(row=idx+1, column=3, value=row.get("name", ""))
+            
+            amount = row.get("amount", 0)
+            total_amount += amount
+            amount_cell = ws.cell(row=idx+1, column=4, value=amount)
+            amount_cell.number_format = '#,##0.00 ₪'
+            
+            ws.cell(row=idx+1, column=5, value=row.get("date", ""))
+            ws.cell(row=idx+1, column=6, value=calculate_payment_date(row.get("date", "")))
+            ws.cell(row=idx+1, column=7, value=row.get("details", ""))
+        
+        # Total row
+        total_row = len(request.rows) + 2
+        ws.cell(row=total_row, column=3, value="סה״כ:").font = Font(bold=True)
+        total_cell = ws.cell(row=total_row, column=4, value=total_amount)
+        total_cell.font = Font(bold=True)
+        total_cell.number_format = '#,##0.00 ₪'
+        
+        # Auto-fit columns
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            ws.column_dimensions[column].width = max_length + 2
+        
+        # Save to buffer
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        safe_filename = quote(f"מוכן_לתשלום_{datetime.now().strftime('%Y%m%d')}.xlsx")
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f"attachment; filename*=UTF-8''{safe_filename}"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error exporting ready payment: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/send-email")
 async def send_email(request: SendEmailRequest):
     """Send email via SMTP (Outlook/Office 365)."""
