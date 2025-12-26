@@ -428,6 +428,10 @@ ${settings.companyName}`;
 
   // Handle payment action - open payment modal
   const handlePaymentAction = (row, rowIndex) => {
+    // Close other modals first
+    setStatementModal(null);
+    setEmailModal(null);
+    
     // Find all rows for the same supplier
     const supplierRows = categoryDetails.filter(r => 
       r.name === row.name || r.account === row.account
