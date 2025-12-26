@@ -1182,6 +1182,119 @@ async def delete_supplier_rows(request: DeleteSupplierRowsRequest):
     return {"success": True, "deleted_count": deleted_count, "message": f"Deleted {deleted_count} rows for supplier"}
 
 
+class PaymentRequest(BaseModel):
+    rows: List[dict]
+    supplier_name: str
+
+@api_router.post("/generate-payment")
+async def generate_payment(request: PaymentRequest):
+    """Generate Excel payment file for selected rows."""
+    try:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "רשימת תשלום"
+        ws.sheet_view.rightToLeft = True
+        
+        # Header styling
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+        header_alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Headers
+        headers = ["מס'", "חשבון", "שם ספק", "תאור חשבון", "חש. ספק", "סכום", "תאריך חשבונית", "תאריך תשלום", "פרטים"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+        
+        # Calculate payment date (invoice date + 60 days, then to the 10th of that month)
+        def calculate_payment_date(invoice_date_str):
+            try:
+                # Try to parse the date
+                if "/" in str(invoice_date_str):
+                    parts = str(invoice_date_str).split("/")
+                    if len(parts) == 3:
+                        day, month, year = int(parts[0]), int(parts[1]), int(parts[2])
+                        if year < 100:
+                            year += 2000
+                        invoice_date = datetime(year, month, day)
+                    else:
+                        invoice_date = datetime.now()
+                else:
+                    invoice_date = datetime.now()
+                
+                # Add 60 days
+                payment_date = invoice_date + timedelta(days=60)
+                # Set to 10th of that month
+                payment_date = payment_date.replace(day=10)
+                return payment_date.strftime("%d/%m/%Y")
+            except:
+                return ""
+        
+        # Data rows
+        total_amount = 0
+        for idx, row in enumerate(request.rows, 1):
+            ws.cell(row=idx+1, column=1, value=idx)
+            ws.cell(row=idx+1, column=2, value=row.get("account", ""))
+            ws.cell(row=idx+1, column=3, value=row.get("name", ""))
+            ws.cell(row=idx+1, column=4, value=row.get("account_description", ""))
+            ws.cell(row=idx+1, column=5, value=row.get("supplier_account", ""))
+            
+            amount = row.get("amount", 0)
+            total_amount += amount
+            amount_cell = ws.cell(row=idx+1, column=6, value=amount)
+            amount_cell.number_format = '#,##0.00 ₪'
+            
+            ws.cell(row=idx+1, column=7, value=row.get("date", ""))
+            ws.cell(row=idx+1, column=8, value=calculate_payment_date(row.get("date", "")))
+            ws.cell(row=idx+1, column=9, value=row.get("details", ""))
+        
+        # Total row
+        total_row = len(request.rows) + 2
+        ws.cell(row=total_row, column=5, value="סה״כ:").font = Font(bold=True)
+        total_cell = ws.cell(row=total_row, column=6, value=total_amount)
+        total_cell.font = Font(bold=True)
+        total_cell.number_format = '#,##0.00 ₪'
+        
+        # Auto-fit columns
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            ws.column_dimensions[column].width = max_length + 2
+        
+        # Remove rows from special category in DB
+        details = await db.processing_details.find_one({}, {"_id": 0})
+        if details:
+            special_list = details.get("special", [])
+            row_keys = set(f"{r.get('account')}-{r.get('amount')}-{r.get('date')}" for r in request.rows)
+            special_list = [r for r in special_list if f"{r.get('account')}-{r.get('amount')}-{r.get('date')}" not in row_keys]
+            await db.processing_details.update_one({}, {"$set": {"special": special_list}})
+        
+        # Save to buffer
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        safe_filename = quote(f"תשלום_{request.supplier_name}.xlsx")
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f"attachment; filename*=UTF-8''{safe_filename}"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error generating payment: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/send-email")
 async def send_email(request: SendEmailRequest):
     """Send email via SMTP (Outlook/Office 365)."""
