@@ -432,7 +432,7 @@ ${signaturePart}`;
   };
 
   // Handle payment action - open payment modal
-  const handlePaymentAction = (row, rowIndex) => {
+  const handlePaymentAction = async (row, rowIndex) => {
     // Close other modals first
     setStatementModal(null);
     setEmailModal(null);
@@ -441,7 +441,25 @@ ${signaturePart}`;
     const supplierRows = categoryDetails.filter(r => 
       r.name === row.name || r.account === row.account
     );
-    setPaymentModal({ row, rowIndex, supplierRows });
+    
+    // Fetch supplier's payment terms
+    let supplierPaymentTerms = "";
+    try {
+      const response = await axios.get(`${API}/suppliers`);
+      const suppliers = response.data;
+      const supplier = suppliers.find(s => 
+        s.account_number === row.account || 
+        s.name === row.name ||
+        s.account_number === String(row.account)
+      );
+      if (supplier?.payment_terms) {
+        supplierPaymentTerms = supplier.payment_terms;
+      }
+    } catch (err) {
+      console.error("Error fetching supplier payment terms:", err);
+    }
+    
+    setPaymentModal({ row, rowIndex, supplierRows, paymentTerms: supplierPaymentTerms });
     setSelectedForPayment(supplierRows.map((_, idx) => idx)); // Select all by default
   };
 
